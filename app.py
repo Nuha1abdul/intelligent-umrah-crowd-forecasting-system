@@ -1,14 +1,10 @@
-
 from pathlib import Path
-from textwrap import dedent
-import glob
 import html
 import joblib
 import numpy as np
 import pandas as pd
-import streamlit as st
-import streamlit.components.v1 as components
 import plotly.graph_objects as go
+import streamlit as st
 
 
 # =====================================================
@@ -27,8 +23,6 @@ st.set_page_config(
 # Constants
 # =====================================================
 
-DATA_FILE_NAME = "Intelligent System for Predicting Visitor Crowd Levels and Optimal Visiting Times at Al-Masjid Al-Haram.xlsx"
-
 MODEL_PATHS = [
     Path("models/growth_rate_xgboost_model.pkl"),
     Path("growth_rate_xgboost_model.pkl")
@@ -40,19 +34,38 @@ TARGET_COL = "المعتمرين"
 
 HIJRI_MONTHS = [
     "محرم", "صفر", "ربيع الأول", "ربيع الآخر",
-    "جماد الأول", "جماد الآخر", "رجب", "شعبان",
-    "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
+    "جماد الأول", "جماد الآخر",
+    "رجب", "شعبان", "رمضان", "شوال",
+    "ذو القعدة", "ذو الحجة"
 ]
 
 NATIONALITY_OPTIONS = ["سعودي", "غير سعودي"]
 
+LEVEL_COLORS = {
+    "منخفض": "#1f8a52",
+    "متوسط": "#c28a20",
+    "مرتفع": "#c94b45"
+}
+
+LEVEL_BG = {
+    "منخفض": "#eef8f1",
+    "متوسط": "#fff8e8",
+    "مرتفع": "#fff1f0"
+}
+
+LEVEL_BORDER = {
+    "منخفض": "#b9dec6",
+    "متوسط": "#ead29b",
+    "مرتفع": "#e7b7b2"
+}
+
 
 # =====================================================
-# Safe HTML
+# Helper Functions
 # =====================================================
 
 def H(markup: str):
-    st.markdown(dedent(markup).strip(), unsafe_allow_html=True)
+    st.markdown(markup, unsafe_allow_html=True)
 
 
 def esc(x):
@@ -70,56 +83,53 @@ def format_number(value):
         return str(value)
 
 
-def format_influence_value(value):
+def format_seasonal_count(value):
     try:
         if pd.isna(value):
-            return "غير متاح"
-
+            return "لا يوجد"
         value = float(value)
-
         if value <= 0:
             return "لا يوجد"
-
-        if value == 1:
-            return "موجود"
-
         return f"{int(round(value)):,}"
     except Exception:
-        value = str(value).strip()
-        return value if value else "غير متاح"
+        return "لا يوجد"
 
 
-# =====================================================
-# Data Helpers
-# =====================================================
+def normalize_level(level):
+    text = str(level).strip()
 
-def display_flag(value):
-    try:
-        if pd.isna(value):
-            return "لا"
-        return "نعم" if float(value) > 0 else "لا"
-    except Exception:
-        return "نعم" if str(value).strip() in ["1", "نعم", "yes", "Yes", "True", "true"] else "لا"
+    mapping = {
+        "Low": "منخفض",
+        "Medium": "متوسط",
+        "High": "مرتفع",
+        "Critical": "مرتفع",
+        "low": "منخفض",
+        "medium": "متوسط",
+        "high": "مرتفع",
+        "critical": "مرتفع",
+        "منخفض": "منخفض",
+        "متوسط": "متوسط",
+        "مرتفع": "مرتفع",
+        "حرج": "مرتفع",
+        "عالي": "مرتفع",
+        "مرتفع جدًا": "مرتفع",
+    }
+
+    return mapping.get(text, text)
+
+
+def english_level(level):
+    level = normalize_level(level)
+
+    return {
+        "منخفض": "Low",
+        "متوسط": "Medium",
+        "مرتفع": "High"
+    }.get(level, "Medium")
 
 
 def is_hajj_related_month(month_name):
     return str(month_name).strip() in ["ذو القعدة", "ذو الحجة"]
-
-
-def find_data_file():
-    exact_path = Path(DATA_FILE_NAME)
-
-    if exact_path.exists():
-        return exact_path
-
-    matches = glob.glob(
-        "Intelligent System for Predicting Visitor Crowd Levels and Optimal Visiting Times at Al-Masjid Al-Haram*.xlsx"
-    )
-
-    if matches:
-        return Path(matches[0])
-
-    return None
 
 
 def get_existing_model_path():
@@ -160,6 +170,25 @@ def extract_hijri_day(value):
     return nums[0]
 
 
+def classify_by_quantiles(series):
+    series = pd.to_numeric(series, errors="coerce")
+
+    q1 = series.quantile(0.33)
+    q2 = series.quantile(0.66)
+
+    def classify(x):
+        if pd.isna(x):
+            return "متوسط"
+        if x <= q1:
+            return "منخفض"
+        elif x <= q2:
+            return "متوسط"
+        else:
+            return "مرتفع"
+
+    return series.apply(classify)
+
+
 def normalize_columns(df):
     df = df.copy()
 
@@ -169,9 +198,12 @@ def normalize_columns(df):
         "Tawaf_Ifadah_Featureh": "Tawaf_Ifadah",
         "Umrah_Count": "المعتمرين",
         "Visitors": "المعتمرين",
+        "Predicted": "Prediction",
+        "Prediction_Count": "Prediction",
+        "predicted_visitors": "Prediction",
         "Gregorian Date": "Gregorian_Date",
         "Hijri Month": "Hijri_Month",
-        "Hijri Day": "Hijri_Day",
+        "Hijri Day": "Hijri_Day"
     }
 
     return df.rename(columns={c: rename_map.get(c, c) for c in df.columns})
@@ -188,10 +220,13 @@ def add_display_cols(df):
     if "Hijri_Date" not in df.columns:
         df["Hijri_Date"] = ""
 
-    df["Hijri_Day_Num"] = df["Hijri_Date"].apply(extract_hijri_day)
+    if "Hijri_Day" not in df.columns:
+        df["Hijri_Day"] = df["Hijri_Date"].apply(extract_hijri_day)
 
-    if df["Hijri_Day_Num"].isna().all() and "Hijri_Day" in df.columns:
-        df["Hijri_Day_Num"] = pd.to_numeric(df["Hijri_Day"], errors="coerce")
+    df["Hijri_Day_Num"] = pd.to_numeric(df["Hijri_Day"], errors="coerce")
+
+    if df["Hijri_Day_Num"].isna().all():
+        df["Hijri_Day_Num"] = df["Hijri_Date"].apply(extract_hijri_day)
 
     if "Weekday_AR" not in df.columns:
         weekday_map = {
@@ -212,236 +247,303 @@ def add_display_cols(df):
     if "AvgTemp_C" not in df.columns:
         df["AvgTemp_C"] = np.nan
 
-    if "Weather_Category" not in df.columns:
-        df["Weather_Category"] = "غير محدد"
+    if "Hajj" not in df.columns:
+        df["Hajj"] = 0
 
-    if "Hajj_Count_For_Recommendation" not in df.columns:
-        if "Hajj" in df.columns:
-            df["Hajj_Count_For_Recommendation"] = pd.to_numeric(
-                df["Hajj"], errors="coerce"
-            ).fillna(0)
-        else:
-            df["Hajj_Count_For_Recommendation"] = 0
+    if "Tawaf_Ifadah" not in df.columns:
+        df["Tawaf_Ifadah"] = 0
 
-    if "Tawaf_Ifadah_Count_For_Recommendation" not in df.columns:
-        if "Tawaf_Ifadah" in df.columns:
-            df["Tawaf_Ifadah_Count_For_Recommendation"] = pd.to_numeric(
-                df["Tawaf_Ifadah"], errors="coerce"
-            ).fillna(0)
-        else:
-            df["Tawaf_Ifadah_Count_For_Recommendation"] = 0
-
-    df["Hajj_Display"] = df["Hajj_Count_For_Recommendation"].apply(display_flag)
-    df["Tawaf_Display"] = df["Tawaf_Ifadah_Count_For_Recommendation"].apply(display_flag)
+    df["Hajj"] = pd.to_numeric(df["Hajj"], errors="coerce").fillna(0)
+    df["Tawaf_Ifadah"] = pd.to_numeric(df["Tawaf_Ifadah"], errors="coerce").fillna(0)
 
     if "Prediction" not in df.columns:
         if TARGET_COL in df.columns:
             df["Prediction"] = pd.to_numeric(df[TARGET_COL], errors="coerce")
-        elif "predicted_visitors" in df.columns:
-            df["Prediction"] = pd.to_numeric(df["predicted_visitors"], errors="coerce")
         else:
-            st.error("لا يوجد عمود Prediction أو عمود المعتمرين في ملف البيانات.")
+            st.error("ملف المودل لا يحتوي على عمود Prediction أو عمود المعتمرين.")
             st.stop()
 
     df["Prediction"] = pd.to_numeric(df["Prediction"], errors="coerce")
 
     if "Crowding_Level" not in df.columns:
-        q1 = df["Prediction"].quantile(0.33)
-        q2 = df["Prediction"].quantile(0.66)
+        df["Crowding_Level"] = classify_by_quantiles(df["Prediction"])
+    else:
+        df["Crowding_Level"] = df["Crowding_Level"].apply(normalize_level)
 
-        df["Crowding_Level"] = np.where(
-            df["Prediction"] <= q1,
-            "منخفض",
-            np.where(df["Prediction"] <= q2, "متوسط", "مرتفع")
-        )
+        valid = ["منخفض", "متوسط", "مرتفع"]
+        invalid_mask = ~df["Crowding_Level"].isin(valid)
+
+        if invalid_mask.any():
+            fallback = classify_by_quantiles(df["Prediction"])
+            df.loc[invalid_mask, "Crowding_Level"] = fallback.loc[invalid_mask]
 
     return df
 
 
-def load_package():
+# =====================================================
+# Load Model Results
+# =====================================================
+
+@st.cache_data
+def load_data():
     model_path = get_existing_model_path()
 
-    if model_path is not None:
+    if model_path is None:
+        st.error(
+            "لم يتم العثور على ملف المودل. "
+            "ارفع ملف growth_rate_xgboost_model.pkl داخل مجلد models."
+        )
+        st.stop()
+
+    try:
         package = joblib.load(model_path)
-        if isinstance(package, dict):
-            return package
-        return {"model": package}
+    except Exception as e:
+        st.error(f"حدث خطأ أثناء تحميل ملف المودل: {e}")
+        st.stop()
 
-    data_file = find_data_file()
+    if isinstance(package, pd.DataFrame):
+        return add_display_cols(package)
 
-    if data_file is not None:
-        return {"test_df": pd.read_excel(data_file)}
+    if isinstance(package, dict):
+        if "test_df" in package:
+            return add_display_cols(package["test_df"])
 
-    st.error("لم يتم العثور على ملف المودل أو ملف البيانات.")
+        if "results_df" in package:
+            return add_display_cols(package["results_df"])
+
+        if "df" in package:
+            return add_display_cols(package["df"])
+
+    st.error(
+        "ملف المودل يجب أن يحتوي على DataFrame داخل test_df أو results_df أو df "
+        "ويحتوي على عمود Prediction."
+    )
     st.stop()
 
 
-def get_test_df_from_package(package):
-    if "test_df" in package:
-        return add_display_cols(package["test_df"])
+# =====================================================
+# Logic
+# =====================================================
 
-    if "results_df" in package:
-        return add_display_cols(package["results_df"])
-
-    if "df" in package:
-        return add_display_cols(package["df"])
-
-    data_file = find_data_file()
-
-    if data_file is not None:
-        return add_display_cols(pd.read_excel(data_file))
-
-    st.error("لم يتم العثور على بيانات الاختبار.")
-    st.stop()
-
-
-def get_7_day_comparison(test_df, selected_month, selected_day):
-    start_day = int(selected_day)
+def get_7_days(df, month, day):
+    start_day = int(day)
     end_day = min(start_day + 6, 30)
 
-    comparison_df = test_df[
-        (test_df[MONTH_COL].astype(str).str.strip() == str(selected_month).strip()) &
-        (test_df["Hijri_Day_Num"] >= start_day) &
-        (test_df["Hijri_Day_Num"] <= end_day)
+    out = df[
+        (df[MONTH_COL].astype(str).str.strip() == str(month).strip()) &
+        (df["Hijri_Day_Num"] >= start_day) &
+        (df["Hijri_Day_Num"] <= end_day)
     ].copy()
 
-    return comparison_df, start_day, end_day
+    out = out.sort_values("Hijri_Day_Num").reset_index(drop=True)
+
+    out["Local_Crowding_Level"] = classify_by_quantiles(out["Prediction"])
+    out["Local_Color"] = out["Local_Crowding_Level"].map(LEVEL_COLORS)
+
+    return out
 
 
-def get_best_alternative(comparison_df, selected_day):
-    alternatives = comparison_df[comparison_df["Hijri_Day_Num"] != int(selected_day)].copy()
+def get_best_day(df7, current_day):
+    alt = df7[df7["Hijri_Day_Num"] != int(current_day)].copy()
 
-    if alternatives.empty:
+    if alt.empty:
         return None
 
-    return alternatives.sort_values("Prediction").iloc[0]
+    return alt.sort_values("Prediction").iloc[0]
 
 
-def get_weather_reason(row):
-    try:
-        temp = float(row.get("AvgTemp_C", np.nan))
-    except Exception:
-        temp = np.nan
+def get_decision(level):
+    level = normalize_level(level)
 
-    if pd.isna(temp):
-        return "لا توجد معلومات كافية عن درجة الحرارة، لذلك تم بناء التوصية بشكل أساسي على مستوى الازدحام المتوقع."
-
-    if temp >= 40:
-        return f"درجة الحرارة مرتفعة جدًا تقريبًا {temp:.1f}°C، لذلك يفضل تجنب وقت الظهيرة واختيار وقت مبكر جدًا أو بعد العشاء."
-    elif temp >= 35:
-        return f"درجة الحرارة مرتفعة تقريبًا {temp:.1f}°C، لذلك يفضل اختيار وقت مبكر لتقليل الإجهاد الحراري."
-    elif temp >= 28:
-        return f"درجة الحرارة مناسبة نسبيًا تقريبًا {temp:.1f}°C، لكن الازدحام المتوقع يظل العامل الأهم في القرار."
+    if level == "منخفض":
+        return "مناسب"
+    elif level == "مرتفع":
+        return "يفضل اختيار يوم آخر"
     else:
-        return f"درجة الحرارة مناسبة تقريبًا {temp:.1f}°C، وهذا يدعم إمكانية الزيارة إذا كان الازدحام مناسبًا."
+        return "مناسب مع الحذر"
 
 
-def get_decision(row, comparison_df, selected_month):
-    avg_prediction = comparison_df["Prediction"].mean()
-    selected_prediction = row["Prediction"]
+def get_reason(decision):
+    if decision == "مناسب":
+        return "الازدحام المتوقع منخفض، لذلك يعتبر اليوم مناسبًا لأداء العمرة."
 
-    reasons = []
+    if decision == "يفضل اختيار يوم آخر":
+        return "الازدحام المتوقع مرتفع مقارنةً بالأيام القريبة، لذلك يفضل اختيار يوم أقل ازدحامًا."
 
-    if selected_prediction <= avg_prediction * 0.90:
-        decision = "مناسب للزيارة"
-        level = "منخفض"
-        reasons.append("الازدحام المتوقع أقل من متوسط الأيام السبعة القريبة، لذلك يعتبر اليوم مناسبًا نسبيًا للزيارة.")
-    elif selected_prediction >= avg_prediction * 1.15:
-        decision = "يفضل اختيار يوم آخر"
-        level = "مرتفع"
-        reasons.append("الازدحام المتوقع أعلى من متوسط الأيام السبعة القريبة، لذلك يفضل اختيار يوم أقل ازدحامًا.")
-    else:
-        decision = "مناسب مع الحذر"
-        level = "متوسط"
-        reasons.append("الازدحام المتوقع متوسط مقارنة بالأيام السبعة القريبة، لذلك يمكن الزيارة مع اختيار وقت مناسب.")
-
-    reasons.append(f"عدد المعتمرين المتوقعين في هذا اليوم هو تقريبًا {format_number(selected_prediction)} معتمر.")
-
-    if is_hajj_related_month(selected_month):
-        hajj_value = row.get("Hajj_Count_For_Recommendation", 0)
-        tawaf_value = row.get("Tawaf_Ifadah_Count_For_Recommendation", 0)
-
-        if display_flag(hajj_value) == "نعم":
-            reasons.append(
-                f"كما تظهر البيانات وجود تأثير مرتبط بالحج خلال هذا التاريخ، وقيمة/عدد مؤشر الحج في البيانات: {format_influence_value(hajj_value)}."
-            )
-
-        if display_flag(tawaf_value) == "نعم":
-            reasons.append(
-                f"كما تظهر البيانات وجود تأثير لطواف الإفاضة خلال هذا التاريخ، وقيمة/عدد مؤشر طواف الإفاضة في البيانات: {format_influence_value(tawaf_value)}."
-            )
-
-    reasons.append(get_weather_reason(row))
-
-    return {
-        "decision": decision,
-        "level": level,
-        "reason": " ".join(reasons),
-    }
+    return "الازدحام المتوقع ضمن المستوى المتوسط، لذلك يمكن أداء العمرة مع الحذر واختيار الوقت المناسب."
 
 
-def get_row_recommendation(row, avg_prediction):
-    prediction = row["Prediction"]
-
-    if prediction <= avg_prediction * 0.90:
-        return "أفضل للزيارة"
-
-    if prediction >= avg_prediction * 1.15:
-        return "يفضل تجنب الزيارة"
-
-    return "يمكن الذهاب مع الحذر"
-
-
-def prepare_display_table(df, show_hajj_info):
+def prepare_display_table(df):
     display_df = df.copy()
-    avg_prediction = display_df["Prediction"].mean()
 
-    display_df["Recommendation_Text"] = display_df.apply(
-        lambda r: get_row_recommendation(r, avg_prediction),
-        axis=1
-    )
-
-    cols = [
-        "Hijri_Date",
-        "Weekday_AR",
-        "Prediction",
-        "Crowding_Level",
-    ]
-
-    rename_map = {
+    display_df = display_df[
+        ["Hijri_Date", "Weekday_AR", "Prediction", "Local_Crowding_Level"]
+    ].rename(columns={
         "Hijri_Date": "التاريخ الهجري",
         "Weekday_AR": "اليوم",
         "Prediction": "المعتمرون المتوقعون",
-        "Crowding_Level": "الازدحام",
-    }
+        "Local_Crowding_Level": "مستوى الازدحام",
+    })
 
-    display_df = display_df[cols].rename(columns=rename_map)
-
-    display_df["المعتمرون المتوقعون"] = display_df["المعتمرون المتوقعون"].apply(
-        lambda x: f"{int(float(x)):,}" if not pd.isna(x) else "غير متاح"
-    )
+    display_df["المعتمرون المتوقعون"] = display_df["المعتمرون المتوقعون"].apply(format_number)
 
     return display_df
 
 
-def df_to_html_table(df):
-    header_html = "".join([f"<th>{esc(col)}</th>" for col in df.columns])
-    rows = []
+# =====================================================
+# Chart
+# =====================================================
 
-    for _, row in df.iterrows():
-        tds = "".join([f"<td>{esc(val)}</td>" for val in row.values])
-        rows.append(f"<tr>{tds}</tr>")
+def build_chart(df7):
+    cdf = df7.copy().reset_index(drop=True)
+    cdf["Prediction"] = pd.to_numeric(cdf["Prediction"], errors="coerce")
 
-    return f"""
-    <table class="clean-table">
-        <thead>
-            <tr>{header_html}</tr>
-        </thead>
-        <tbody>
-            {''.join(rows)}
-        </tbody>
-    </table>
-    """
+    cdf["x_label"] = (
+        cdf["Weekday_AR"].astype(str) +
+        "<br>" +
+        cdf["Hijri_Day_Num"].astype(int).astype(str) +
+        "-" +
+        cdf[MONTH_COL].astype(str)
+    )
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=cdf["x_label"],
+        y=cdf["Prediction"],
+        mode="lines",
+        line=dict(
+            color="#c69a35",
+            width=3,
+            shape="spline"
+        ),
+        hoverinfo="skip",
+        showlegend=False
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=cdf["x_label"],
+        y=cdf["Prediction"],
+        mode="markers+text",
+        marker=dict(
+            size=10,
+            color=cdf["Local_Color"],
+            line=dict(color="white", width=2)
+        ),
+        text=cdf["Prediction"].apply(
+            lambda x: f"{int(round(float(x))):,}" if not pd.isna(x) else ""
+        ),
+        textposition="top center",
+        hovertemplate="<b>%{x}</b><br>المعتمرون المتوقعون: %{y:,.0f}<extra></extra>",
+        showlegend=False
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        marker=dict(size=8, color=LEVEL_COLORS["منخفض"]),
+        name="منخفض"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        marker=dict(size=8, color=LEVEL_COLORS["متوسط"]),
+        name="متوسط"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        marker=dict(size=8, color=LEVEL_COLORS["مرتفع"]),
+        name="مرتفع"
+    ))
+
+    q1 = cdf["Prediction"].quantile(0.33)
+    q2 = cdf["Prediction"].quantile(0.66)
+
+    fig.add_hline(
+        y=q1,
+        line_dash="dot",
+        line_color="rgba(32,139,85,0.25)",
+        line_width=1
+    )
+
+    fig.add_hline(
+        y=q2,
+        line_dash="dot",
+        line_color="rgba(194,138,32,0.25)",
+        line_width=1
+    )
+
+    y_min = cdf["Prediction"].min()
+    y_max = cdf["Prediction"].max()
+    pad = max((y_max - y_min) * 0.22, 400)
+
+    fig.update_layout(
+        height=300,
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#fffdfa",
+        font=dict(family="Cairo", size=11, color="#064b3b"),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.04,
+            xanchor="left",
+            x=0.01,
+            title="مستوى الازدحام",
+            font=dict(size=10)
+        ),
+        xaxis=dict(
+            showgrid=False,
+            title=""
+        ),
+        yaxis=dict(
+            range=[max(0, y_min - pad), y_max + pad],
+            showgrid=True,
+            gridcolor="rgba(120,100,60,0.10)",
+            tickformat=",",
+            title=dict(text="عدد المعتمرين", font=dict(size=10))
+        )
+    )
+
+    return fig
+
+
+# =====================================================
+# UI Helpers
+# =====================================================
+
+def top_card(title, value, subtitle, icon, level=None):
+    if level is None:
+        color = "#064b3b"
+        bg = "rgba(255,255,255,0.90)"
+        border = "#e5d4aa"
+        badge_bg = "#eef3ea"
+        badge_text = "#0a6b52"
+    else:
+        level = normalize_level(level)
+        color = LEVEL_COLORS.get(level, "#064b3b")
+        bg = LEVEL_BG.get(level, "#ffffff")
+        border = LEVEL_BORDER.get(level, "#e5d4aa")
+        badge_bg = LEVEL_BG.get(level, "#eef3ea")
+        badge_text = color
+
+    H(f"""
+    <div class="top-card" style="background:{bg}; border-color:{border};">
+        <div class="top-icon">{esc(icon)}</div>
+        <div class="top-title">{esc(title)}</div>
+        <div class="top-value" style="color:{color};">{esc(value)}</div>
+        <div class="top-badge" style="background:{badge_bg}; color:{badge_text};">{esc(subtitle)}</div>
+    </div>
+    """)
+
+
+def info_pill(text):
+    H(f"""
+    <div class="small-pill">{esc(text)}</div>
+    """)
 
 
 # =====================================================
@@ -450,357 +552,459 @@ def df_to_html_table(df):
 
 H("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Noto+Kufi+Arabic:wght@400;600;700;800&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Cairo', Tahoma, Arial, sans-serif !important;
+    font-family: 'Cairo', 'Noto Kufi Arabic', sans-serif !important;
     direction: rtl;
 }
 
 .stApp {
-    background: linear-gradient(180deg, #fbf8ef 0%, #f5efdf 100%) !important;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(212,177,97,0.07), transparent 18%),
+      radial-gradient(circle at 92% 10%, rgba(7,86,68,0.06), transparent 18%),
+      linear-gradient(180deg, #fbf8f1 0%, #f5eee1 100%);
 }
 
-#MainMenu, header, footer {
+#MainMenu, footer, header {
     visibility: hidden;
 }
 
 .block-container {
-    max-width: 1450px !important;
-    padding-top: 1rem !important;
-    padding-left: 1.1rem !important;
-    padding-right: 1.1rem !important;
-    padding-bottom: 2rem !important;
+    max-width: 1260px !important;
+    padding-top: 0.45rem !important;
+    padding-bottom: 1.0rem !important;
 }
 
-/* Sidebar */
+/* Sidebar - light compact */
 section[data-testid="stSidebar"] {
-    width: 168px !important;
-    min-width: 168px !important;
-    max-width: 168px !important;
-    background: rgba(238, 228, 207, 0.78) !important;
-    border-left: 1px solid rgba(196, 164, 99, 0.45) !important;
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    background:
+      radial-gradient(circle at 50% 10%, rgba(212,177,97,0.10), transparent 24%),
+      linear-gradient(180deg, #fbf8f1 0%, #f3ecdd 100%) !important;
+    border-left: 1px solid #e2cf9d !important;
+    box-shadow: -4px 0 18px rgba(105,84,35,0.05);
 }
 
 section[data-testid="stSidebar"] > div {
-    background: rgba(238, 228, 207, 0.78) !important;
-    padding-top: 18px !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    padding-top: 0.9rem !important;
 }
 
-.sidebar-card {
-    background: rgba(255,255,255,0.28);
-    border: 1px solid rgba(201,173,112,0.50);
-    border-radius: 22px;
-    padding: 14px 6px;
-    text-align: center;
-    margin-bottom: 22px;
-}
-
-.sidebar-logo {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    background: rgba(248,240,220,0.85);
-    border: 1px solid #d8bd7e;
-    margin: auto;
-    display: grid;
-    place-items: center;
-    font-size: 30px;
+.sidebar-wrap {
+    text-align:center;
+    padding: 18px 8px 14px 8px;
 }
 
 .sidebar-title {
-    margin-top: 14px;
-    color: #064b3b;
-    font-size: 21px;
+    color:#064b3b;
+    font-size: 16px;
     font-weight: 900;
+    margin-top: 4px;
 }
 
-.sidebar-subtitle {
-    color: #7a5a24;
-    font-size: 10.5px;
-    font-weight: 700;
-    margin-top: 3px;
+.sidebar-sub {
+    color:#9b6b16;
+    font-size: 9px;
+    font-weight:700;
+    margin-top: 5px;
 }
 
-.sidebar-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #b58a2a, transparent);
-    margin: 10px 6px 18px 6px;
+.sidebar-line {
+    height:1px;
+    background: linear-gradient(90deg, transparent, #d6bd7f, transparent);
+    margin: 14px 24px 18px 24px;
 }
 
-/* Sidebar buttons without visible boxes */
+section[data-testid="stSidebar"] .stButton {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* Sidebar text without boxes */
 section[data-testid="stSidebar"] .stButton button {
-    height: 42px !important;
-    width: 100% !important;
-    border-radius: 0px !important;
-    margin-bottom: 9px !important;
-    border: none !important;
+    width: fit-content !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 4px !important;
     background: transparent !important;
-    box-shadow: none !important;
-    color: #5a3e1a !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
+    color: #064b3b !important;
+    border: none !important;
     text-align: right !important;
-    padding-right: 12px !important;
+    font-weight: 800 !important;
+    font-size: 13px !important;
+    border-radius: 0 !important;
+    height: 34px !important;
+    margin-bottom: 14px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-shadow: none !important;
 }
 
 section[data-testid="stSidebar"] .stButton button:hover {
-    background: rgba(255,255,255,0.34) !important;
-    color: #064b3b !important;
-    border-radius: 12px !important;
+    background: transparent !important;
+    color: #9b6b16 !important;
+    border: none !important;
+    text-decoration: underline;
 }
 
-/* Main buttons */
 .stButton button {
-    background: linear-gradient(135deg, #064b3b, #0b6b53) !important;
+    background: linear-gradient(135deg, #0a6b52, #064b3b) !important;
     color: white !important;
     border: none !important;
     border-radius: 14px !important;
+    height: 40px !important;
     font-weight: 800 !important;
-    height: 48px !important;
+    font-size: 13px !important;
 }
 
 .main-header {
-    background: linear-gradient(90deg, #ffffff 0%, #fffdf8 52%, #f6eddb 100%);
-    border: 1px solid #dcc58e;
-    border-radius: 26px;
-    min-height: 132px;
-    padding: 22px 32px;
-    box-shadow: 0 16px 34px rgba(88,66,32,0.07);
-    margin-bottom: 26px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.93), rgba(255,250,241,0.96));
+    border: 1px solid #e5d4aa;
+    border-radius: 20px;
+    padding: 12px 22px;
+    min-height: 84px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 7px 16px rgba(105,84,35,0.04);
+    margin-bottom: 10px;
 }
 
-.header-logo {
-    width: 78px;
-    height: 78px;
-    border-radius: 22px;
-    background: #f5ead0;
-    border: 1px solid #dfc98f;
-    display: grid;
-    place-items: center;
-    font-size: 38px;
-}
-
-.header-title {
+.header-main-title {
     color: #064b3b;
-    font-size: 30px;
-    font-weight: 900;
+    font-family: 'Noto Kufi Arabic', 'Cairo', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
     text-align: center;
 }
 
 .header-subtitle {
-    color: #a97908;
-    font-size: 14px;
+    color: #c08a19;
+    font-size: 11px;
     font-weight: 800;
-    margin-top: 8px;
     text-align: center;
+    margin-top: 4px;
 }
 
-.header-line {
-    width: 360px;
+.header-decor {
+    width: 220px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #c99a2e, transparent);
-    margin: 14px auto 0 auto;
+    background: linear-gradient(90deg, transparent, #d3a33c, transparent);
+    margin: 6px auto 0 auto;
+}
+
+.header-logo-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: #f8ebcd;
+    border: 1px solid #dfc98f;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
 }
 
 .hero-box {
-    background: #fbf6ec;
-    border: 1px solid #d6bd7f;
-    border-radius: 28px;
-    padding: 48px 36px;
-    text-align: center;
-    box-shadow: 0 16px 34px rgba(88,66,32,0.07);
-    margin-bottom: 24px;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid #e5d4aa;
+    border-radius: 20px;
+    padding: 22px;
+    text-align:center;
+    margin-bottom: 12px;
 }
 
 .hero-icon {
-    width: 82px;
-    height: 82px;
-    margin: 0 auto 16px auto;
-    border-radius: 50%;
-    background: rgba(212,165,58,0.11);
-    border: 1px solid rgba(212,165,58,0.42);
-    display: grid;
+    width: 56px;
+    height: 56px;
+    margin:auto;
+    border-radius:50%;
+    background: rgba(213,170,72,0.12);
+    border:1px solid rgba(213,170,72,0.33);
+    display:grid;
     place-items:center;
-    font-size: 38px;
+    font-size: 26px;
 }
 
 .hero-title {
-    color: #064b3b;
-    font-size: 32px;
-    font-weight: 900;
+    color:#064b3b;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:20px;
+    font-weight:800;
+    margin-top:8px;
 }
 
-.hero-subtitle {
-    color: #a97908;
-    font-size: 17px;
-    font-weight: 800;
-    margin-top: 10px;
+.hero-sub {
+    color:#be8919;
+    font-size:12px;
+    font-weight:800;
+    margin-top:6px;
 }
 
 .hero-text {
-    color: #4a3d28;
-    font-size: 15px;
-    line-height: 2;
-    font-weight: 600;
-    margin-top: 14px;
+    color:#51442a;
+    font-size:12px;
+    line-height:1.7;
+    font-weight:600;
+    margin-top:8px;
 }
 
-.feature-card {
-    background: #fbf6ec;
-    border: 1px solid #d6bd7f;
-    border-radius: 22px;
-    padding: 22px 16px;
-    min-height: 130px;
+.top-card {
+    background: rgba(255,255,255,0.90);
+    border: 1px solid #e5d4aa;
+    border-radius: 18px;
+    padding: 12px 12px;
+    min-height: 112px;
+    box-shadow: 0 6px 14px rgba(105,84,35,0.04);
     text-align: center;
-    box-shadow: 0 10px 24px rgba(88,66,32,0.055);
 }
 
-.feature-icon {
-    font-size: 30px;
-    margin-bottom: 8px;
+.top-icon {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 5px auto;
+    border-radius: 14px;
+    display:grid;
+    place-items:center;
+    font-size:18px;
+    background:#f6f2e9;
+    border:1px solid #ead9b2;
 }
 
-.feature-title {
-    color: #064b3b;
-    font-size: 16px;
-    font-weight: 900;
+.top-title {
+    color:#3d2f16;
+    font-size:11px;
+    font-weight:800;
+    margin-top:3px;
 }
 
-.feature-text {
-    color: #7b6a40;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 8px;
+.top-value {
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:21px;
+    font-weight:800;
+    line-height:1.2;
+    margin-top:5px;
 }
 
-div[data-testid="stForm"] {
-    background: #fbf6ec !important;
-    border: 1px solid #d6bd7f !important;
-    border-radius: 30px !important;
-    padding: 38px 44px 32px 44px !important;
-    box-shadow: 0 16px 38px rgba(88,66,32,0.09) !important;
-    position: relative !important;
-    overflow: hidden !important;
+.top-badge {
+    width:fit-content;
+    margin: 6px auto 0 auto;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
 }
 
-div[data-testid="stForm"]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 6px;
-    background: linear-gradient(90deg, #064b3b, #d4a53a, #064b3b);
+.reco-box {
+    background: rgba(255,255,255,0.78);
+    border: 1px solid #e3d0a0;
+    border-radius: 18px;
+    padding: 12px 16px;
+    box-shadow: 0 5px 12px rgba(105,84,35,0.03);
 }
 
-.input-title {
-    text-align: center;
-    color: #064b3b;
-    font-size: 29px;
-    font-weight: 900;
-    margin-top: 10px;
+.reco-label {
+    text-align:center;
+    color:#5a4b2d;
+    font-size:10px;
+    font-weight:800;
 }
 
-.input-subtitle {
-    text-align: center;
-    color: #a97908;
-    font-size: 14px;
-    font-weight: 800;
-    margin-top: 8px;
+.reco-title {
+    text-align:center;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:18px;
+    font-weight:800;
+    margin-top:2px;
 }
 
-.input-line {
-    width: 360px;
-    height: 2px;
-    margin: 14px auto 26px auto;
-    background: linear-gradient(90deg, transparent, #b58a2a, transparent);
+.reco-line {
+    width:100px;
+    height:2px;
+    background: linear-gradient(90deg, transparent, #d0a347, transparent);
+    margin:5px auto 6px auto;
 }
 
-.input-section-title {
-    text-align: center;
-    color: #064b3b;
-    font-size: 25px;
-    font-weight: 900;
-    margin-bottom: 24px;
+.reco-text {
+    text-align:center;
+    color:#372f20;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.75;
+    max-width:920px;
+    margin:auto;
 }
 
-.stTextInput input {
-    background: #fffefa !important;
-    border: 1px solid #d5bd82 !important;
-    border-radius: 13px !important;
-    min-height: 50px !important;
-    font-family: 'Cairo', Tahoma, Arial, sans-serif !important;
-    font-size: 14px !important;
+.small-pill {
+    background: rgba(255,250,242,0.92);
+    border: 1px solid #e7d7af;
+    color:#84621c;
+    border-radius: 999px;
+    padding: 5px 11px;
+    min-height: 28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10px;
+    font-weight:800;
 }
 
-.stSelectbox > div > div {
-    background: #fffefa !important;
-    border: 1px solid #d5bd82 !important;
-    border-radius: 13px !important;
-    min-height: 50px !important;
-    font-family: 'Cairo', Tahoma, Arial, sans-serif !important;
-    font-size: 14px !important;
-}
-
-label {
-    color: #4d3517 !important;
-    font-weight: 800 !important;
-    font-size: 14px !important;
-}
-
-.chart-card, .best-card, .better-question-card, .table-card {
-    background: rgba(255,255,255,0.60);
-    border: 1px solid #d6bd7f;
-    border-radius: 24px;
-    box-shadow: 0 10px 24px rgba(88,66,32,0.055);
-    padding: 20px;
+.section-box {
+    background: rgba(255,255,255,0.70);
+    border: 1px solid rgba(180,155,96,0.28);
+    border-radius: 16px;
+    padding: 11px 12px;
+    box-shadow: 0 4px 10px rgba(105,84,35,0.03);
+    height: 100%;
 }
 
 .section-title {
-    color: #064b3b;
-    font-size: 20px;
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 10px;
+    text-align:center;
+    color:#064b3b;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:14px;
+    font-weight:800;
 }
 
-.title-line {
-    width: 86px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #c99a2e, transparent);
-    margin: 0 auto 16px auto;
+.section-line {
+    width:68px;
+    height:2px;
+    background: linear-gradient(90deg, transparent, #d0a347, transparent);
+    margin: 4px auto 8px auto;
 }
 
-.clean-table {
-    width: 100%;
-    border-collapse: collapse;
+.best-panel {
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(180,155,96,0.30);
     border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid #c9ad70;
-    background: #fffefa;
+    padding: 11px 12px;
+    box-shadow: 0 4px 10px rgba(105,84,35,0.03);
+    height: 100%;
 }
 
-.clean-table th {
-    background: #f2e3bd;
-    color: #6b5730;
-    font-weight: 800;
-    font-size: 12px;
-    padding: 9px;
+.best-title {
+    color:#064b3b;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:14px;
+    font-weight:800;
+    text-align:center;
 }
 
-.clean-table td {
-    padding: 9px;
-    border-bottom: 1px solid #eee1bd;
-    color: #234138;
-    font-weight: 600;
-    font-size: 12px;
-    text-align: center;
+.best-sub {
+    color:#5a4d30;
+    font-size:10px;
+    font-weight:600;
+    text-align:center;
+    margin-top:5px;
+    line-height:1.5;
+}
+
+.best-result-card {
+    background: rgba(255,255,255,0.88);
+    border:1px solid #ead8ae;
+    border-radius:14px;
+    padding:10px 12px;
+    text-align:center;
+    margin-top:10px;
+}
+
+.best-result-label {
+    color:#6e5a2b;
+    font-size:10px;
+    font-weight:800;
+}
+
+.best-result-day {
+    color:#064b3b;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+    font-size:18px;
+    font-weight:800;
+    margin-top:4px;
+}
+
+.best-result-date {
+    color:#3e3526;
+    font-size:10px;
+    font-weight:700;
+    margin-top:4px;
+}
+
+.best-result-badge {
+    width:fit-content;
+    margin:7px auto 0 auto;
+    padding:4px 11px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:10px;
+}
+
+.best-result-number {
+    color:#7a6a44;
+    font-size:10px;
+    font-weight:700;
+    margin-top:6px;
+}
+
+div[data-testid="column"]:has(.best-panel) .stButton button {
+    width: 100% !important;
+    height: 36px !important;
+    border-radius: 12px !important;
+    margin-top: -2px !important;
+    box-shadow: 0 4px 10px rgba(6,75,59,0.12) !important;
+}
+
+div[data-testid="stForm"] {
+    background: rgba(255,255,255,0.82) !important;
+    border:1px solid #e2cf9d !important;
+    border-radius: 20px !important;
+    padding: 22px 28px !important;
+    box-shadow: 0 7px 16px rgba(105,84,35,0.04);
+}
+
+.form-title {
+    text-align:center;
+    color:#064b3b;
+    font-size:22px;
+    font-weight:800;
+    font-family:'Noto Kufi Arabic','Cairo',sans-serif;
+}
+
+.form-sub {
+    text-align:center;
+    color:#bf8d21;
+    font-size:12px;
+    font-weight:800;
+    margin-top:5px;
+}
+
+.form-line {
+    width:220px;
+    height:2px;
+    background:linear-gradient(90deg, transparent, #d0a347, transparent);
+    margin:10px auto 17px auto;
+}
+
+.form-section {
+    text-align:center;
+    color:#064b3b;
+    font-size:18px;
+    font-weight:800;
+    margin-bottom:16px;
+}
+
+.stTextInput input, .stSelectbox > div > div {
+    background:#fffdfa !important;
+    border:1px solid #d9c28a !important;
+    border-radius:12px !important;
+    min-height:40px !important;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 0.7rem !important;
 }
 </style>
 """)
@@ -813,395 +1017,14 @@ label {
 def show_header():
     H("""
     <div class="main-header">
-        <div class="header-logo">🕋</div>
+        <div class="header-logo-box">🕋</div>
         <div style="flex:1;">
-            <div class="header-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
+            <div class="header-main-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
             <div class="header-subtitle">المسجد الحرام الشريف</div>
-            <div class="header-line"></div>
+            <div class="header-decor"></div>
         </div>
     </div>
     """)
-
-
-def show_prediction_summary_box(
-    predicted_umrah,
-    crowding_level,
-    selected_day_label,
-    reason_text,
-    temp_text,
-    start_day,
-    end_day,
-    hajj_value,
-    tawaf_value,
-    show_hajj_info
-):
-    hajj_chips_html = ""
-
-    if show_hajj_info:
-        hajj_text = format_influence_value(hajj_value)
-        tawaf_text = format_influence_value(tawaf_value)
-
-        hajj_chips_html = f"""
-            <div class="chip gold">تأثير الحج: {esc(hajj_text)}</div>
-            <div class="chip gold">تأثير طواف الإفاضة: {esc(tawaf_text)}</div>
-        """
-
-    summary_html = f"""
-    <html>
-    <head>
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
-
-    body {{
-        margin: 0;
-        padding: 0;
-        font-family: 'Cairo', Tahoma, Arial, sans-serif;
-        direction: rtl;
-        background: transparent;
-    }}
-
-    .summary-box {{
-        background: rgba(255, 253, 247, 0.96);
-        border: 1px solid #d8c79d;
-        border-radius: 28px;
-        padding: 22px 30px 20px 30px;
-        box-shadow: 0 10px 28px rgba(80, 58, 20, 0.055);
-    }}
-
-    .cards-grid {{
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-        margin-bottom: 24px;
-    }}
-
-    .mini-card {{
-        border: 1px solid #e2d2a6;
-        background: rgba(255,255,255,0.62);
-        border-radius: 20px;
-        padding: 14px 18px;
-        min-height: 78px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }}
-
-    .mini-icon {{
-        width: 42px;
-        height: 42px;
-        border-radius: 14px;
-        background: #f5ead0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        flex-shrink: 0;
-    }}
-
-    .mini-label {{
-        color: #6d6042;
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }}
-
-    .mini-value {{
-        color: #064b3b;
-        font-size: 21px;
-        font-weight: 900;
-        line-height: 1.25;
-    }}
-
-    .reason-area {{
-        border-top: 1px solid rgba(216,199,157,0.65);
-        padding-top: 22px;
-        text-align: center;
-    }}
-
-    .reason-title {{
-        color: #064b3b;
-        font-size: 24px;
-        font-weight: 900;
-        margin-bottom: 12px;
-    }}
-
-    .reason-line {{
-        width: 120px;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #c99a2e, transparent);
-        margin: 0 auto 22px auto;
-    }}
-
-    .reason-text {{
-        color: #2f2b1d;
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 2.05;
-        max-width: 1080px;
-        margin: auto;
-    }}
-
-    .chips {{
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 22px;
-    }}
-
-    .chip {{
-        padding: 7px 14px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 800;
-        border: 1px solid #e4c87c;
-        background: #fff6df;
-        color: #8a6415;
-    }}
-
-    .chip.green {{
-        background: #edf8ef;
-        border-color: #b7d8b9;
-        color: #1f7a4d;
-    }}
-
-    .chip.blue {{
-        background: #eef7f7;
-        border-color: #b9d8df;
-        color: #0d6b69;
-    }}
-
-    .chip.gold {{
-        background: #fff6df;
-        border-color: #e4c87c;
-        color: #8a6415;
-    }}
-
-    .footer {{
-        margin-top: 18px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(216,199,157,0.45);
-        color: #8a8168;
-        font-size: 11.5px;
-        font-weight: 700;
-    }}
-    </style>
-    </head>
-
-    <body>
-        <div class="summary-box">
-
-            <div class="cards-grid">
-                <div class="mini-card">
-                    <div>
-                        <div class="mini-label">المعتمرون المتوقعون</div>
-                        <div class="mini-value">{predicted_umrah:,}</div>
-                    </div>
-                    <div class="mini-icon">👥</div>
-                </div>
-
-                <div class="mini-card">
-                    <div>
-                        <div class="mini-label">مستوى الازدحام</div>
-                        <div class="mini-value">{esc(crowding_level)}</div>
-                    </div>
-                    <div class="mini-icon">📊</div>
-                </div>
-
-                <div class="mini-card">
-                    <div>
-                        <div class="mini-label">اليوم المختار</div>
-                        <div class="mini-value">{esc(selected_day_label)}</div>
-                    </div>
-                    <div class="mini-icon">📅</div>
-                </div>
-            </div>
-
-            <div class="reason-area">
-                <div class="reason-title">⭐ سبب التوصية</div>
-                <div class="reason-line"></div>
-
-                <div class="reason-text">
-                    {esc(reason_text)}
-                </div>
-
-                <div class="chips">
-                    <div class="chip green">مستوى الازدحام: {esc(crowding_level)}</div>
-                    <div class="chip">درجة الحرارة: {esc(temp_text)}</div>
-                    <div class="chip blue">المعتمرون المتوقعون: {esc(f"{predicted_umrah:,}")}</div>
-                    {hajj_chips_html}
-                </div>
-
-                <div class="footer">
-                    المقارنة المعروضة: 7 أيام من يوم {esc(start_day)} إلى يوم {esc(end_day)}
-                </div>
-            </div>
-
-        </div>
-    </body>
-    </html>
-    """
-
-    components.html(summary_html, height=420 if show_hajj_info else 395, scrolling=False)
-
-
-def show_better_day_question():
-    question_html = """
-    <html>
-    <head>
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
-
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Cairo', Tahoma, Arial, sans-serif;
-        direction: rtl;
-        background: transparent;
-    }
-
-    .question-card {
-        background: rgba(255, 253, 247, 0.96);
-        border: 1px solid #d8c79d;
-        border-radius: 24px;
-        padding: 24px 20px;
-        text-align: center;
-        box-shadow: 0 8px 22px rgba(80, 58, 20, 0.05);
-    }
-
-    .question-title {
-        color: #064b3b;
-        font-size: 22px;
-        font-weight: 900;
-        margin-bottom: 8px;
-    }
-
-    .question-text {
-        color: #7a5a24;
-        font-size: 13px;
-        font-weight: 700;
-    }
-    </style>
-    </head>
-
-    <body>
-        <div class="question-card">
-            <div class="question-title">هل تريد يومًا أفضل؟</div>
-            <div class="question-text">
-                يمكن عرض أقل يوم ازدحامًا ضمن الأيام السبعة القريبة عند الحاجة.
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-
-    components.html(question_html, height=135, scrolling=False)
-
-
-def show_best_day_answer(best_day_name, best_day_date, best_prediction):
-    best_html = f"""
-    <html>
-    <head>
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
-
-    body {{
-        margin: 0;
-        padding: 0;
-        font-family: 'Cairo', Tahoma, Arial, sans-serif;
-        direction: rtl;
-        background: transparent;
-    }}
-
-    .best-card {{
-        background: rgba(255, 253, 247, 0.96);
-        border: 1px solid #d8c79d;
-        border-radius: 24px;
-        padding: 28px 20px;
-        text-align: center;
-        box-shadow: 0 8px 22px rgba(80, 58, 20, 0.05);
-    }}
-
-    .best-icon {{
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
-        background: #f3ead6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 14px auto;
-        font-size: 28px;
-    }}
-
-    .best-label {{
-        color: #064b3b;
-        font-size: 18px;
-        font-weight: 900;
-    }}
-
-    .best-subtitle {{
-        color: #7a5a24;
-        font-size: 13px;
-        font-weight: 800;
-        margin-top: 6px;
-    }}
-
-    .title-line {{
-        width: 90px;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #c99a2e, transparent);
-        margin: 14px auto 20px auto;
-    }}
-
-    .best-day {{
-        color: #064b3b;
-        font-size: 34px;
-        font-weight: 900;
-        margin-bottom: 6px;
-    }}
-
-    .best-date {{
-        color: #b18a2e;
-        font-size: 18px;
-        font-weight: 900;
-        margin-bottom: 18px;
-    }}
-
-    .best-note {{
-        color: #43574f;
-        font-size: 13px;
-        font-weight: 700;
-        line-height: 1.9;
-        border-top: 1px solid #e4d4a8;
-        padding-top: 16px;
-        max-width: 700px;
-        margin: auto;
-    }}
-    </style>
-    </head>
-
-    <body>
-        <div class="best-card">
-            <div class="best-icon">✅</div>
-            <div class="best-label">أفضل يوم موصى به خلال الأيام السبعة القادمة</div>
-            <div class="best-subtitle">بناءً على أقل ازدحام متوقع ضمن فترة المقارنة</div>
-
-            <div class="title-line"></div>
-
-            <div class="best-day">{esc(best_day_name)}</div>
-            <div class="best-date">{esc(best_day_date)}</div>
-
-            <div class="best-note">
-                هذا اليوم هو الأقل ازدحامًا ضمن الأيام السبعة القريبة.
-                {"عدد المعتمرين المتوقعين تقريبًا " + f"{best_prediction:,}" + " معتمر." if best_prediction is not None else ""}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-
-    components.html(best_html, height=320, scrolling=False)
 
 
 # =====================================================
@@ -1224,23 +1047,22 @@ if "show_best_day" not in st.session_state:
 
 with st.sidebar:
     H("""
-    <div class="sidebar-card">
-        <div class="sidebar-logo">🕋</div>
+    <div class="sidebar-wrap">
         <div class="sidebar-title">التنبؤ</div>
-        <div class="sidebar-subtitle">بازدحام المعتمرين</div>
+        <div class="sidebar-sub">بازدحام المعتمرين</div>
+        <div class="sidebar-line"></div>
     </div>
-    <div class="sidebar-divider"></div>
     """)
 
-    if st.button("الرئيسية  🏠"):
+    if st.button("الرئيسية 🏠"):
         st.session_state.page = "home"
         st.rerun()
 
-    if st.button("إدخال البيانات  ✎"):
+    if st.button("إدخال البيانات 📝"):
         st.session_state.page = "input"
         st.rerun()
 
-    if st.button("لوحة النتائج  ▮"):
+    if st.button("لوحة النتائج 📈"):
         st.session_state.page = "dashboard"
         st.rerun()
 
@@ -1249,17 +1071,16 @@ with st.sidebar:
 # Home Page
 # =====================================================
 
-def landing_page():
+def home_page():
     show_header()
 
     H("""
     <div class="hero-box">
         <div class="hero-icon">🕋</div>
         <div class="hero-title">مرحبًا بك في نظام التنبؤ بازدحام المعتمرين</div>
-        <div class="hero-subtitle">Umrah Visitors Smart Forecasting System</div>
+        <div class="hero-sub">Umrah Visitors Smart Forecasting System</div>
         <div class="hero-text">
-            يساعد هذا النظام على عرض توقعات الازدحام بصورة واضحة وهادئة،
-            مع اقتراح يوم مناسب للزيارة بناءً على البيانات المتاحة.
+            لوحة تفاعلية لعرض توقعات الازدحام واقتراح اليوم الأنسب لأداء العمرة.
         </div>
     </div>
     """)
@@ -1267,25 +1088,26 @@ def landing_page():
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("📈", "تنبؤ ذكي", "عرض مبسط لاتجاه الازدحام المتوقع."),
-        ("📅", "أفضل يوم", "اقتراح اليوم الأقل ازدحامًا ضمن الفترة القريبة."),
-        ("✅", "قرار أوضح", "توصية مباشرة وسهلة القراءة."),
+        ("📈", "توقعات ذكية", "عرض مستوى الازدحام المتوقع."),
+        ("📅", "أفضل يوم", "اقتراح يوم أقل ازدحامًا."),
+        ("✅", "توصية واضحة", "مساعدة المعتمر في القرار."),
     ]
 
     for col, (icon, title, desc) in zip([c1, c2, c3], cards):
         with col:
             H(f"""
-            <div class="feature-card">
-                <div class="feature-icon">{icon}</div>
-                <div class="feature-title">{title}</div>
-                <div class="feature-text">{desc}</div>
+            <div class="section-box" style="text-align:center;">
+                <div style="font-size:22px;">{icon}</div>
+                <div style="color:#064b3b; font-weight:800; font-size:14px; margin-top:8px;">{esc(title)}</div>
+                <div style="color:#705f39; font-weight:600; font-size:11px; margin-top:5px;">{esc(desc)}</div>
             </div>
             """)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    _, center, _ = st.columns([1, 1.2, 1])
-    with center:
+    _, mid, _ = st.columns([1, 1.05, 1])
+
+    with mid:
         if st.button("ابدأ إدخال البيانات", use_container_width=True):
             st.session_state.page = "input"
             st.rerun()
@@ -1296,12 +1118,14 @@ def landing_page():
 # =====================================================
 
 def input_page():
-    with st.form("prediction_form"):
+    show_header()
+
+    with st.form("input_form"):
         H("""
-        <div class="input-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
-        <div class="input-subtitle">المسجد الحرام الشريف</div>
-        <div class="input-line"></div>
-        <div class="input-section-title">✎ إدخال بيانات</div>
+        <div class="form-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
+        <div class="form-sub">المسجد الحرام الشريف</div>
+        <div class="form-line"></div>
+        <div class="form-section">✎ إدخال بيانات</div>
         """)
 
         c1, c2 = st.columns(2)
@@ -1320,16 +1144,20 @@ def input_page():
         with c4:
             day = st.selectbox("التاريخ الهجري", list(range(1, 31)), index=18)
 
-        blocked = month == "ذو القعدة" and nationality == "غير سعودي" and 1 <= int(day) <= 15
+        blocked = (
+            month == "ذو القعدة" and
+            nationality == "غير سعودي" and
+            1 <= int(day) <= 15
+        )
 
         if blocked:
             st.error("لا يمكن عرض النتائج لهذا الاختيار؛ لأن الجنسية غير سعودي خلال الفترة من 1 إلى 15 ذو القعدة.")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        _, btn_col, _ = st.columns([1, 1.15, 1])
+        _, mid, _ = st.columns([1, 1.1, 1])
 
-        with btn_col:
+        with mid:
             submitted = st.form_submit_button("عرض النتائج", use_container_width=True)
 
         if submitted:
@@ -1342,11 +1170,11 @@ def input_page():
 
             st.session_state.entered = True
             st.session_state.show_best_day = False
-            st.session_state.page = "dashboard"
             st.session_state.selected_name = name.strip()
             st.session_state.selected_nationality = nationality
             st.session_state.selected_month = month
             st.session_state.selected_day = int(day)
+            st.session_state.page = "dashboard"
             st.rerun()
 
 
@@ -1359,212 +1187,145 @@ def dashboard_page():
 
     if not st.session_state.entered:
         st.warning("الرجاء إدخال البيانات أولًا.")
-        if st.button("الذهاب إلى صفحة إدخال البيانات"):
+
+        if st.button("الذهاب إلى إدخال البيانات"):
             st.session_state.page = "input"
             st.rerun()
+
         return
 
-    month = st.session_state.get("selected_month")
-    day = st.session_state.get("selected_day")
-    show_hajj_info = is_hajj_related_month(month)
+    month = st.session_state.selected_month
+    day = st.session_state.selected_day
+    show_hajj = is_hajj_related_month(month)
 
-    with st.spinner("جاري تحميل البيانات..."):
-        package = load_package()
-        test_df = get_test_df_from_package(package)
+    df = load_data()
+    df7 = get_7_days(df, month, day)
 
-    filtered_df, start_day, end_day = get_7_day_comparison(test_df, month, day)
-
-    if filtered_df.empty:
-        st.error("لا توجد بيانات مطابقة للشهر والتاريخ المختار.")
+    if df7.empty:
+        st.error("لا توجد بيانات مطابقة لليوم أو الشهر المختار داخل ملف المودل.")
         return
 
-    selected_day_df = filtered_df[filtered_df["Hijri_Day_Num"] == int(day)].copy()
+    selected_df = df7[df7["Hijri_Day_Num"] == int(day)]
 
-    if selected_day_df.empty:
-        st.error("لا توجد بيانات للتاريخ المختار.")
+    if selected_df.empty:
+        st.error("لا توجد بيانات لليوم المختار داخل ملف المودل.")
         return
 
-    selected_row = selected_day_df.iloc[0]
-    weekday = selected_row.get("Weekday_AR", "غير محدد")
-    decision_result = get_decision(selected_row, filtered_df, month)
+    row = selected_df.iloc[0]
 
-    predicted_umrah = int(selected_row["Prediction"])
-    crowding_level = decision_result["level"]
+    weekday = row.get("Weekday_AR", "غير محدد")
+    hijri_date = row.get("Hijri_Date", f"{day}-{month}")
+    prediction = float(row.get("Prediction", 0))
+    crowd_level = normalize_level(row.get("Local_Crowding_Level", "متوسط"))
+    decision = get_decision(crowd_level)
+    reason = get_reason(decision)
 
-    temp_text = "غير متاحة"
-    if "AvgTemp_C" in selected_row.index and not pd.isna(selected_row.get("AvgTemp_C")):
-        temp_text = f"{float(selected_row.get('AvgTemp_C')):.1f}°C"
+    temp = row.get("AvgTemp_C", np.nan)
+    temp_text = "غير متاحة" if pd.isna(temp) else f"{float(temp):.1f}°C"
 
-    hajj_value = selected_row.get("Hajj_Count_For_Recommendation", 0)
-    tawaf_value = selected_row.get("Tawaf_Ifadah_Count_For_Recommendation", 0)
+    hajj_count = format_seasonal_count(row.get("Hajj", 0))
+    tawaf_count = format_seasonal_count(row.get("Tawaf_Ifadah", 0))
 
-    best_alt = get_best_alternative(filtered_df, day)
+    best_day = get_best_day(df7, day)
 
-    if best_alt is not None:
-        best_day_name = str(best_alt["Weekday_AR"])
-        best_day_date = str(best_alt["Hijri_Date"])
-        best_prediction = int(best_alt["Prediction"])
-    else:
-        best_day_name = "غير متاح"
-        best_day_date = ""
-        best_prediction = None
+    c1, c2, c3, c4 = st.columns(4)
 
-    selected_day_label = f"{weekday} - {day}"
+    with c1:
+        top_card("اليوم المختار", weekday, hijri_date, "📅")
 
-    show_prediction_summary_box(
-        predicted_umrah=predicted_umrah,
-        crowding_level=crowding_level,
-        selected_day_label=selected_day_label,
-        reason_text=decision_result["reason"],
-        temp_text=temp_text,
-        start_day=start_day,
-        end_day=end_day,
-        hajj_value=hajj_value,
-        tawaf_value=tawaf_value,
-        show_hajj_info=show_hajj_info
-    )
+    with c2:
+        top_card("المعتمرون المتوقعون", format_number(prediction), "معتمر", "👥")
 
-    st.markdown("<div style='height:18px;'></div>", unsafe_allow_html=True)
+    with c3:
+        top_card("مستوى الازدحام", crowd_level, english_level(crowd_level), "📊", crowd_level)
 
-    # =====================================================
-    # Chart + Small Table Side by Side
-    # =====================================================
+    with c4:
+        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "🌡️")
 
-    chart_df = filtered_df.sort_values(["Hijri_Day_Num", DATE_COL]).copy()
-    chart_df["Day_Label"] = (
-        chart_df["Weekday_AR"].astype(str) +
-        "<br>" +
-        chart_df["Hijri_Day_Num"].astype(int).astype(str)
-    )
+    st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
-    best_day_hijri = chart_df.loc[chart_df["Prediction"].idxmin(), "Hijri_Date"]
-    worst_day_hijri = chart_df.loc[chart_df["Prediction"].idxmax(), "Hijri_Date"]
+    H(f"""
+    <div class="reco-box">
+        <div class="reco-label">التوصية النهائية</div>
+        <div class="reco-title" style="color:{LEVEL_COLORS.get(crowd_level, "#064b3b")};">{esc(decision)}</div>
+        <div class="reco-line"></div>
+        <div class="reco-text">{esc(reason)}</div>
+    </div>
+    """)
 
-    point_colors = []
+    if show_hajj:
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
-    for _, r in chart_df.iterrows():
-        if r["Hijri_Date"] == best_day_hijri:
-            point_colors.append("#1E7A47")
-        elif r["Hijri_Date"] == worst_day_hijri:
-            point_colors.append("#C44334")
-        else:
-            point_colors.append("#C49A3A")
+        s1, s2 = st.columns(2)
 
-    fig = go.Figure()
+        with s1:
+            info_pill(f"عدد الحجاج المتوقع: {hajj_count}")
 
-    fig.add_trace(go.Scatter(
-        x=chart_df["Day_Label"],
-        y=chart_df["Prediction"],
-        mode="lines+markers+text",
-        marker=dict(size=10, color=point_colors),
-        line=dict(color="#C49A3A", width=3),
-        text=chart_df["Prediction"].apply(lambda x: f"{int(x):,}"),
-        textposition="top center",
-        hovertemplate="اليوم %{x}<br>المعتمرون المتوقعون %{y:,.0f}<extra></extra>"
-    ))
+        with s2:
+            info_pill(f"عدد طواف الإفاضة المتوقع: {tawaf_count}")
 
-    fig.update_layout(
-        height=350,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.18)",
-        margin=dict(l=12, r=12, t=12, b=10),
-        font=dict(family="Cairo", size=12, color="#064b3b"),
-        xaxis=dict(
-            showgrid=False,
-            title="",
-            tickfont=dict(size=12, color="#6d6042")
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(150,120,60,.16)",
-            tickformat=",",
-            title="",
-            tickfont=dict(size=11, color="#6d6042")
-        )
-    )
+    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-    left_col, right_col = st.columns([1.45, 0.85])
+    left_col, right_col = st.columns([2.35, 0.78], gap="medium")
 
     with left_col:
         H("""
-        <div class="chart-card">
-            <div class="section-title">اتجاه الازدحام المتوقع</div>
-            <div class="title-line"></div>
+        <div class="section-box">
+            <div class="section-title">توقعات ازدحام المعتمرين – الأيام القادمة (7 أيام)</div>
+            <div class="section-line"></div>
         </div>
         """)
 
+        fig = build_chart(df7)
         st.plotly_chart(fig, use_container_width=True)
 
     with right_col:
-        display_table = prepare_display_table(chart_df, show_hajj_info)
-
         H("""
-        <div class="table-card">
-            <div class="section-title">ملخص الأيام السبعة</div>
-            <div class="title-line"></div>
-        """)
-
-        H(df_to_html_table(display_table))
-
-        H("""
+        <div class="best-panel">
+            <div class="best-title">هل تبحث عن يوم أفضل؟</div>
+            <div class="best-sub">يمكنك عرض اليوم الأقل ازدحامًا ضمن الأيام السبعة القريبة.</div>
         </div>
         """)
 
-    # =====================================================
-    # Better Day Question
-    # =====================================================
+        st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
 
-    st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
-
-    show_better_day_question()
-
-    _, btn_col, _ = st.columns([1, 1.1, 1])
-
-    with btn_col:
-        if st.button("عرض أفضل يوم مقترح", use_container_width=True):
+        if st.button("عرض اليوم الأفضل", use_container_width=True):
             st.session_state.show_best_day = True
             st.rerun()
 
-    if st.session_state.show_best_day:
-        show_best_day_answer(
-            best_day_name=best_day_name,
-            best_day_date=best_day_date,
-            best_prediction=best_prediction
-        )
+        if st.session_state.show_best_day and best_day is not None:
+            best_level = normalize_level(best_day.get("Local_Crowding_Level", "منخفض"))
 
-    # =====================================================
-    # Bottom Buttons Only
-    # =====================================================
+            H(f"""
+            <div class="best-result-card">
+                <div class="best-result-label">اليوم المقترح</div>
+                <div class="best-result-day">{esc(best_day.get("Weekday_AR", "غير متاح"))}</div>
+                <div class="best-result-date">{esc(best_day.get("Hijri_Date", ""))}</div>
+                <div class="best-result-badge"
+                     style="background:{LEVEL_BG.get(best_level, '#eef8f1')};
+                            color:{LEVEL_COLORS.get(best_level, '#208b55')};
+                            border:1px solid {LEVEL_BORDER.get(best_level, '#b9dec6')};">
+                    مستوى {esc(best_level)}
+                </div>
+                <div class="best-result-number">
+                    المعتمرون المتوقعون: {format_number(best_day.get("Prediction", 0))}
+                </div>
+            </div>
+            """)
 
-    b1, b2 = st.columns(2)
+    with st.expander("عرض تفاصيل الأيام السبعة"):
+        display_df = prepare_display_table(df7)
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-    with b1:
+    st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
+
+    _, mid, _ = st.columns([1, 1.2, 1])
+
+    with mid:
         if st.button("رجوع لإدخال بيانات جديدة", use_container_width=True):
             st.session_state.page = "input"
             st.session_state.show_best_day = False
             st.rerun()
-
-    with b2:
-        report_df = pd.DataFrame([{
-            "Hijri_Month": month,
-            "Hijri_Date": day,
-            "Weekday": weekday,
-            "Predicted_Umrah_Visitors": predicted_umrah,
-            "Crowding_Level": crowding_level,
-            "Decision": decision_result["decision"],
-            "Best_Day": best_day_name,
-            "Best_Date": best_day_date,
-        }])
-
-        csv = report_df.to_csv(index=False).encode("utf-8-sig")
-
-        st.download_button(
-            label="تحميل التقرير CSV",
-            data=csv,
-            file_name="umrah_prediction_result.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
 
 
 # =====================================================
@@ -1572,8 +1333,10 @@ def dashboard_page():
 # =====================================================
 
 if st.session_state.page == "home":
-    landing_page()
+    home_page()
+
 elif st.session_state.page == "input":
     input_page()
-elif st.session_state.page == "dashboard":
+
+else:
     dashboard_page()
