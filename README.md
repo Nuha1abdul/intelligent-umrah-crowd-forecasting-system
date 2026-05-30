@@ -35,7 +35,7 @@ The modeling pipeline was developed in `notebooks/final_model_notebook.ipynb` an
 
 ### 2. Dashboard and Deployment Layer
 
-The Streamlit dashboard (`app.py`) serves as the user-facing interface. It loads the trained model artifact (`growth_rate_xgboost_model.pkl`) and the precomputed forecast results to generate real-time predictions based on user input.
+The Streamlit dashboard (`app.py`) serves as the user-facing interface. It loads the trained model artifact (`growth_rate_xgboost_model.pkl`) and the precomputed forecast results to display interactive forecasts and recommendations based on the selected Hijri month and day.
 
 The dashboard is deployed through Streamlit Community Cloud and is publicly accessible via the link above.
 
@@ -217,6 +217,6 @@ The final project report, poster, and presentation are submitted separately thro
 
 ## Authors
 
-Data Science Graduation Project 2 (GP2)
+Data Science Graduation Project 
 Umm Al-Qura University
 College of Computing — Data Science Department
