@@ -195,24 +195,30 @@ The following files are required for successful deployment:
 
 ---
 
-## GP2 Submission Alignment
+## Project Deliverables
 
-This repository is structured to satisfy the GP2 code repository requirements set by the committee:
+This repository contains the technical implementation of the Intelligent Umrah Crowd Forecasting System, including the modeling workflow, deployment code, datasets, trained model artifact, and live dashboard.
 
-| Requirement | Status |
+| Component | Description |
 |---|---|
-| Final source code files and scripts | `app.py`, `train_model.py` |
-| Final modeling notebook | `notebooks/final_model_notebook.ipynb` |
-| README with project overview and setup instructions | This file |
-| Dependencies file | `requirements.txt` |
-| Dataset files | `data/raw/`, `data/external/`, `data/processed/`, repository root |
-| Trained model artifact | `growth_rate_xgboost_model.pkl` |
-| Forecast results | `growth_rate_xgboost_results_1446.xlsx` |
-| Deployed dashboard link | Streamlit Community Cloud |
-| Supplementary deliverable folders | `reports/`, `poster/`, `presentation/` |
+| Modeling notebook | Complete data science workflow in `notebooks/final_model_notebook.ipynb` |
+| Training script | Reproducible model training pipeline in `train_model.py` |
+| Dashboard application | Streamlit interface implemented in `app.py` |
+| Processed dataset | Final modeling dataset stored in `data/processed/` and repository root |
+| Raw datasets | Original source datasets stored in `data/raw/` |
+| External calendar files | Hijri calendar files stored in `data/external/` |
+| Trained model | Serialized Growth-Rate XGBoost model in `growth_rate_xgboost_model.pkl` |
+| Forecast results | Hijri year 1446 forecast outputs in `growth_rate_xgboost_results_1446.xlsx` |
+| Environment setup | Python dependencies in `requirements.txt` and runtime configuration in `runtime.txt` |
+| Live deployment | Public Streamlit dashboard linked in the Live Dashboard section |
 
-The final project report, poster, and presentation are submitted separately through the official Blackboard submission portal alongside the weekly supervision record forms.
+The repository is organized to support reproducibility, model inspection, and dashboard deployment. Official GP2 materials such as the final report, poster, and presentation slides are organized in the `reports/`, `poster/`, and `presentation/` folders.
 
+---
+
+## Academic Context
+
+This project was developed as a Data Science Graduation Project 2 (GP2) at Umm Al-Qura University, College of Computing. The work demonstrates an end-to-end applied data science pipeline: data preparation, feature engineering, forecasting model development, evaluation, and deployment through an interactive dashboard.
 ---
 
 ## Authors
