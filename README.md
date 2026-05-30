@@ -96,7 +96,7 @@ Predicted_Growth_Rate_7
 The final daily visitor count is computed from the 7-day lag value as follows:
 
 ```
-Prediction = lag_7 x (1 + Predicted_Growth_Rate_7)
+Prediction = lag_7 * (1 + Predicted_Growth_Rate_7)
 ```
 
 | Artifact | Description |
