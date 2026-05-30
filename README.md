@@ -223,6 +223,6 @@ This project was developed as a Data Science Graduation Project 2 (GP2) at Umm A
 
 ## Authors
 
-Data Science Graduation Project 
-Umm Al-Qura University
+Data Science Graduation Project           
+Umm Al-Qura University  
 College of Computing — Data Science Department
