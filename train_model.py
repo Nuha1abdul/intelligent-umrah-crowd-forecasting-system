@@ -1,3 +1,4 @@
+%%writefile train_model.py
 from pathlib import Path
 import glob
 import joblib
