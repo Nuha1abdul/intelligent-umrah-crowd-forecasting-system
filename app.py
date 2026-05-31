@@ -652,18 +652,41 @@ def top_card(title, value, subtitle, icon="", level=None):
     """)
 
 
-def main_prediction_card(value, level, day_name, hijri_date):
+def results_overview(value, level, day_name, hijri_date, temp_text):
     level = normalize_level(level)
     color = LEVEL_COLORS.get(level, "#0F6E52")
     H(f"""
-    <div class="main-kpi-card crowding-hero refined-kpi" style="--level-color:{color};">
-        <div class="main-kpi-kicker">التوصية الذكية</div>
-        <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
-        <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
-        <div class="main-kpi-meta refined-meta">
-            <span>👥 <strong>{esc(value)}</strong> معتمر</span>
-            <span>📅 <strong>{esc(day_name)}</strong></span>
-            <span>🗓 <strong>{esc(hijri_date)}</strong></span>
+    <div class="results-overview">
+        <div class="summary-cards">
+            <div class="summary-card compact-card">
+                <div class="summary-label">اليوم المختار</div>
+                <div class="summary-value day-value">{esc(day_name)}</div>
+                <div class="summary-sub">{esc(hijri_date)}</div>
+            </div>
+            <div class="summary-card compact-card">
+                <div class="summary-label">العدد المتوقع</div>
+                <div class="summary-value">{esc(value)}</div>
+                <div class="summary-sub">معتمر</div>
+            </div>
+            <div class="summary-card wide-card">
+                <div>
+                    <div class="summary-label">درجة الحرارة</div>
+                    <div class="summary-sub">متوسط اليوم</div>
+                </div>
+                <div class="summary-value temp-value">{esc(temp_text)}</div>
+            </div>
+        </div>
+
+        <div class="decision-card" style="--level-color:{color};">
+            <div class="decision-surface"></div>
+            <div class="decision-kicker">مؤشر الازدحام المتوقع</div>
+            <div class="decision-level" style="color:{color};">{esc(level)}</div>
+            <div class="decision-label">قرار سريع يساعدك على اختيار وقت الزيارة</div>
+            <div class="decision-meta">
+                <span><strong>العدد المتوقع:</strong> {esc(value)} معتمر</span>
+                <span><strong>اليوم:</strong> {esc(day_name)}</span>
+                <span><strong>التاريخ:</strong> {esc(hijri_date)}</span>
+            </div>
         </div>
     </div>
     """)
@@ -1457,13 +1480,190 @@ H("""
 """)
 
 
+H("""
+<style>
+/* Refined results section: balanced dashboard layout */
+.results-overview {
+    display: grid;
+    grid-template-columns: minmax(520px, 1.45fr) minmax(360px, 0.95fr);
+    gap: 22px;
+    align-items: stretch;
+    direction: ltr;
+    margin-top: 4px;
+}
+.results-overview > * { direction: rtl; }
+
+.decision-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 252px;
+    border-radius: 34px;
+    padding: 34px 38px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 12% 20%, rgba(216,189,120,0.16), transparent 30%),
+      radial-gradient(circle at 88% 82%, rgba(255,255,255,0.055), transparent 28%),
+      linear-gradient(135deg, #062B25 0%, #0E4C40 54%, #031F1B 100%);
+    border: 1px solid rgba(216,189,120,0.38);
+    box-shadow: 0 28px 64px rgba(6,43,37,0.18), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.decision-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image:
+      linear-gradient(60deg, rgba(255,255,255,0.45) 1px, transparent 1px),
+      linear-gradient(120deg, rgba(216,189,120,0.45) 1px, transparent 1px);
+    background-size: 38px 38px;
+}
+.decision-card::after {
+    content: "";
+    position: absolute;
+    width: 210px;
+    height: 210px;
+    border-radius: 50%;
+    right: -70px;
+    top: -80px;
+    background: rgba(216,189,120,0.09);
+    border: 1px solid rgba(216,189,120,0.12);
+}
+.decision-surface {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    left: -42px;
+    bottom: -56px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.decision-kicker,
+.decision-level,
+.decision-label,
+.decision-meta { position: relative; z-index: 2; }
+.decision-kicker {
+    width: fit-content;
+    padding: 8px 18px;
+    border-radius: 999px;
+    color: #F6E7BE;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(246,231,190,0.16);
+    font-size: 12px;
+    font-weight: 900;
+    margin-bottom: 16px;
+}
+.decision-level {
+    font-size: 74px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -1.8px;
+    text-shadow: 0 14px 38px rgba(0,0,0,0.16);
+}
+.decision-label {
+    margin-top: 12px;
+    color: #D8BD78;
+    font-size: 16px;
+    font-weight: 900;
+}
+.decision-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+}
+.decision-meta span {
+    padding: 9px 16px;
+    border-radius: 999px;
+    color: #FFF8E8;
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-content: stretch;
+}
+.summary-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.84), rgba(255,250,238,0.68));
+    border: 1px solid rgba(199,163,90,0.28);
+    box-shadow: 0 22px 48px rgba(6,43,37,0.065);
+    backdrop-filter: blur(18px) saturate(125%);
+}
+.summary-card::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(199,163,90,0.82), transparent);
+}
+.compact-card {
+    min-height: 118px;
+    padding: 20px 22px;
+}
+.wide-card {
+    grid-column: span 2;
+    min-height: 118px;
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.summary-label {
+    color: #66736D;
+    font-size: 13px;
+    font-weight: 900;
+}
+.summary-value {
+    margin-top: 12px;
+    color: #062B25;
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.6px;
+}
+.day-value { font-size: 32px; }
+.temp-value { font-size: 36px; margin-top: 0; }
+.summary-sub {
+    margin-top: 8px;
+    color: #6D756F;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (max-width: 1050px) {
+    .results-overview {
+        grid-template-columns: 1fr;
+        direction: rtl;
+    }
+    .decision-card { min-height: 230px; }
+    .decision-level { font-size: 56px; }
+}
+</style>
+""")
+
 def show_header():
     H("""
     <div class="main-header premium-header clean-header">
         <div class="header-center">
             <div class="header-main-title">المنصة الذكية لتوقع الازدحام</div>
             <div class="header-subtitle">
-                اختيار الوقت الأنسب لأداء العمرة<br>
+                اختيار الوقت الأنسب للعمرة اعتمادًا على<br>
+                التوقعات المستقبلية وتحليل مستويات الازدحام
             </div>
             <div class="header-decor"></div>
         </div>
@@ -1775,20 +1975,8 @@ def dashboard_page():
 
     best_day = get_best_day(df7, day, month)
 
-    main_col, side_col = st.columns([1.55, 1], gap="large")
-
-    with main_col:
-        main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
-
-    with side_col:
-        s1, s2 = st.columns(2)
-        with s1:
-            top_card("العدد المتوقع", format_number(prediction), "معتمر", "")
-        with s2:
-            top_card("اليوم المختار", weekday, hijri_date, "")
-        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
-        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "")
-    st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+    results_overview(format_number(prediction), crowd_level, weekday, hijri_date, temp_text)
+    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
     H(f"""
     <div class="reco-box">
