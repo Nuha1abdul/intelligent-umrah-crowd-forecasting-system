@@ -1467,20 +1467,20 @@ def show_header():
             <div class="brand-spark">✦</div>
         </div>
         <div style="flex:1;">
-            <div class="header-main-title">نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين</div>
-            <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
+            <div class="header-main-title">التوقع الذكي لإزدحام المعتمرين</div>
+            <div class="header-subtitle">اختيار الوقت الأنسب لأداء العمرة بناءً على التوقعات المستقبلية</div>
             <div class="header-decor"></div>
         </div>
         <div class="header-status">
             <span class="status-dot"></span>
-            منصة تنبؤ
+          التنبؤ الذكي
         </div>
     </div>
     """)
 
 
 def render_nav():
-    H('<div class="nav-caption">واجهة تنفيذية لعرض التوقعات والتوصيات</div>')
+    H('<div class="nav-caption">توقعات ذكية للأيام القادمة</div>')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
@@ -1516,11 +1516,11 @@ def home_page():
     H("""
     <div class="hero-box premium-landing">
         <div class="hero-visual-ring"></div>
-        <div class="hero-kicker">منصة تنبؤ وتوصية</div>
-        <div class="hero-title">قراءة مستقبلية للازدحام قبل الوصول</div>
-        <div class="hero-sub">اختيار أذكى لوقت أداء العمرة بناءً على توقعات الأيام القادمة</div>
+        <div class="hero-kicker">نظام دعم القرار</div>
+        <div class="hero-title">اختر الوقت الأنسب للعمرة</div>
+        <div class="hero-sub">توقع مستوى الازدحام والحصول على توصية للوقت الأنسب للزيارة</div>
         <div class="hero-text">
-            يعرض النظام مستوى الازدحام المتوقع، العدد التقريبي للمعتمرين، والتوصية النهائية بطريقة واضحة تساعد المستخدم على اتخاذ قرار أفضل.
+            يعرض النظام العدد المتوقع للمعتمرين ومستوى الازدحام والتوصية المناسبة لمساعدتك في اختيار وقت الزيارة.
         </div>
     </div>
     """)
