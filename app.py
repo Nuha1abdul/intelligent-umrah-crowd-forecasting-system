@@ -8,10 +8,10 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين",
+    page_title="نظام ذكي للتنبؤ بازدحام المعتمرين",
     page_icon="◇",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 
@@ -34,21 +34,21 @@ HIJRI_MONTHS = [
 NATIONALITY_OPTIONS = ["سعودي", "غير سعودي"]
 
 LEVEL_COLORS = {
-    "منخفض": "#159a5c",
-    "متوسط": "#c8921e",
-    "مرتفع": "#d2554a"
+    "منخفض": "#0F8B5F",
+    "متوسط": "#B88318",
+    "مرتفع": "#B94B42"
 }
 
 LEVEL_BG = {
-    "منخفض": "#eef8f1",
-    "متوسط": "#fff8e8",
-    "مرتفع": "#fff1f0"
+    "منخفض": "#ECF7F0",
+    "متوسط": "#FFF6E2",
+    "مرتفع": "#FFF0EE"
 }
 
 LEVEL_BORDER = {
-    "منخفض": "#b9dec6",
-    "متوسط": "#ead29b",
-    "مرتفع": "#e7b7b2"
+    "منخفض": "#BDE3CB",
+    "متوسط": "#E8C77E",
+    "مرتفع": "#E4A7A1"
 }
 
 
@@ -457,7 +457,7 @@ def get_reason(decision):
     return "الازدحام المتوقع ضمن المستوى المتوسط، لذلك يمكن أداء العمرة مع الحذر واختيار الوقت المناسب."
 
 
-def build_chart(df7, selected_month=None, selected_day=None):
+def build_chart(df7):
     cdf = df7.copy().reset_index(drop=True)
     cdf["Prediction"] = pd.to_numeric(cdf["Prediction"], errors="coerce")
     cdf["Local_Crowding_Level"] = cdf["Local_Crowding_Level"].apply(normalize_level)
@@ -467,14 +467,6 @@ def build_chart(df7, selected_month=None, selected_day=None):
         cdf["Hijri_Day_Num"].astype(int).astype(str) + "-" +
         cdf[MONTH_COL].astype(str)
     )
-
-    selected_mask = pd.Series(False, index=cdf.index)
-    if selected_month is not None and selected_day is not None:
-        selected_month = normalize_month_name(selected_month)
-        selected_mask = (
-            (cdf[MONTH_COL].astype(str).str.strip() == str(selected_month).strip()) &
-            (cdf["Hijri_Day_Num"].astype(int) == int(selected_day))
-        )
 
     y_min = cdf["Prediction"].min()
     y_max = cdf["Prediction"].max()
@@ -504,7 +496,7 @@ def build_chart(df7, selected_month=None, selected_day=None):
             y=[base_y, y0, y1, base_y],
             mode="lines",
             fill="toself",
-            fillcolor=hex_to_rgba(seg_color, 0.18),
+            fillcolor=hex_to_rgba(seg_color, 0.12),
             line=dict(color="rgba(0,0,0,0)", width=0),
             hoverinfo="skip",
             showlegend=False
@@ -530,7 +522,7 @@ def build_chart(df7, selected_month=None, selected_day=None):
             x=[x0, x1],
             y=[y0, y1],
             mode="lines",
-            line=dict(color=seg_color, width=5, shape="spline"),
+            line=dict(color=seg_color, width=4, shape="spline"),
             hoverinfo="skip",
             showlegend=False
         ))
@@ -551,41 +543,9 @@ def build_chart(df7, selected_month=None, selected_day=None):
                 lambda x: f"{int(round(float(x))):,}" if not pd.isna(x) else ""
             ),
             textposition="top center",
-            textfont=dict(size=12, color="#064b3b"),
+            textfont=dict(size=12, color="#082E28"),
             hovertemplate="<b>%{x}</b><br>المعتمرون المتوقعون: %{y:,.0f}<extra></extra>",
             name=level
-        ))
-
-    if selected_mask.any():
-        selected_point = cdf[selected_mask].iloc[[0]]
-        fig.add_trace(go.Scatter(
-            x=selected_point["x_label"],
-            y=selected_point["Prediction"],
-            mode="markers+text",
-            marker=dict(
-                size=28,
-                color="#FFFFFF",
-                line=dict(color="#C7A35A", width=5),
-                symbol="circle"
-            ),
-            text=["اليوم المختار"],
-            textposition="bottom center",
-            textfont=dict(size=12, color="#082E28"),
-            hovertemplate="<b>اليوم المختار</b><br>%{x}<br>العدد المتوقع: %{y:,.0f}<extra></extra>",
-            name="اليوم المختار",
-            showlegend=False
-        ))
-        fig.add_trace(go.Scatter(
-            x=selected_point["x_label"],
-            y=selected_point["Prediction"],
-            mode="markers",
-            marker=dict(
-                size=42,
-                color="rgba(199,163,90,0.22)",
-                line=dict(color="rgba(199,163,90,0.25)", width=2)
-            ),
-            hoverinfo="skip",
-            showlegend=False
         ))
 
     q1 = cdf["Prediction"].quantile(0.33)
@@ -595,10 +555,10 @@ def build_chart(df7, selected_month=None, selected_day=None):
     fig.add_hline(y=q2, line_dash="dot", line_color="rgba(200,146,30,0.30)", line_width=1)
 
     fig.update_layout(
-        height=430,
-        margin=dict(l=20, r=20, t=28, b=18),
+        height=360,
+        margin=dict(l=15, r=15, t=15, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.62)",
+        plot_bgcolor="rgba(255,255,255,0.72)",
         font=dict(family="Cairo", size=12, color="#082E28"),
         legend=dict(
             orientation="h",
@@ -613,65 +573,48 @@ def build_chart(df7, selected_month=None, selected_day=None):
         yaxis=dict(
             range=[base_y, y_max + pad],
             showgrid=True,
-            gridcolor="rgba(120,100,60,0.08)",
+            gridcolor="rgba(120,100,60,0.10)",
             tickformat=",",
-            title=dict(text="عدد المعتمرين", font=dict(size=11))
+            title=dict(text="العدد المتوقع للمعتمرين", font=dict(size=11))
         )
     )
 
     return fig
 
 
-def top_card(title, value, subtitle, icon="", level=None):
+def top_card(title, value, subtitle, icon, level=None):
     if level is None:
         color = "#123F35"
-        bg = "rgba(255,255,255,0.76)"
-        border = "rgba(201,169,95,0.30)"
+        bg = "rgba(255,255,255,0.88)"
+        border = "rgba(201,169,95,0.34)"
         accent = "#C7A35A"
-        shadow = "rgba(8,46,40,0.06)"
+        shadow = "rgba(18,63,53,0.055)"
     else:
         level = normalize_level(level)
         color = LEVEL_COLORS.get(level, "#123F35")
-        bg = LEVEL_BG.get(level, "rgba(255,255,255,0.76)")
-        border = LEVEL_BORDER.get(level, "rgba(201,169,95,0.30)")
+        bg = LEVEL_BG.get(level, "rgba(255,255,255,0.88)")
+        border = LEVEL_BORDER.get(level, "rgba(201,169,95,0.34)")
         accent = color
-        shadow = hex_to_rgba(color, 0.18)
+        shadow = hex_to_rgba(color, 0.16)
 
     H(f"""
     <div class="metric-card" style="background:{bg}; border-color:{border}; box-shadow:0 18px 35px {shadow};">
-        <div class="metric-label">{esc(title)}</div>
+        <div class="metric-top">
+            <span class="metric-tag" style="color:{accent}; border-color:{border};">{esc(icon)}</span>
+            <span class="metric-label">{esc(title)}</span>
+        </div>
         <div class="metric-value" style="color:{color};">{esc(value)}</div>
         <div class="metric-subtitle">{esc(subtitle)}</div>
-        <div class="metric-accent" style="background:{accent};"></div>
     </div>
     """)
 
-
-def main_prediction_card(value, level, day_name, hijri_date):
-    level = normalize_level(level)
-    color = LEVEL_COLORS.get(level, "#0F6E52")
+def info_pill(text, icon=""):
     H(f"""
-    <div class="main-kpi-card">
-        <div class="main-kpi-kicker">التوقع الرئيسي</div>
-        <div class="main-kpi-number">{esc(value)}</div>
-        <div class="main-kpi-label">العدد المتوقع للمعتمرين</div>
-        <div class="main-kpi-meta">
-            <span>اليوم المختار: <strong>{esc(day_name)}</strong></span>
-            <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
-            <span style="color:{color};">مستوى الازدحام: <strong>{esc(level)}</strong></span>
-        </div>
-    </div>
-    """)
-
-
-def info_pill(text, icon="👥"):
-    H(f"""
-    <div class="small-pill">
-        <span class="pill-icon">{esc(icon)}</span>
+    <div class="insight-pill">
+        <span class="insight-icon">{esc(icon)}</span>
         <span>{esc(text)}</span>
     </div>
     """)
-
 
 def best_day_card(row):
     if row is None:
@@ -698,25 +641,24 @@ def best_day_card(row):
     </div>
     """)
 
-
 H("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-    --green-950:#062B25;
-    --green-900:#0A352E;
-    --green-800:#104B40;
+    --green-950:#082E28;
+    --green-900:#0D3B33;
+    --green-800:#124B40;
     --green-700:#0F6E52;
     --green-600:#0F8B5F;
-    --gold-700:#A87312;
+    --gold-700:#B88318;
     --gold-500:#C7A35A;
     --gold-200:#EFE1B8;
     --cream-50:#FCFAF4;
-    --cream-100:#F5EFE3;
-    --ink:#10241F;
-    --muted:#66736D;
-    --line:rgba(199,163,90,0.28);
+    --cream-100:#F6F0E4;
+    --ink:#14201D;
+    --muted:#6D756F;
+    --line:rgba(201,169,95,0.30);
 }
 
 html, body, [class*="css"] {
@@ -726,109 +668,142 @@ html, body, [class*="css"] {
 
 .stApp {
     background:
-      radial-gradient(circle at 12% 7%, rgba(199,163,90,0.13), transparent 24%),
-      radial-gradient(circle at 90% 10%, rgba(15,110,82,0.12), transparent 24%),
+      radial-gradient(circle at 12% 9%, rgba(199,163,90,0.14), transparent 24%),
+      radial-gradient(circle at 88% 8%, rgba(15,110,82,0.12), transparent 22%),
       radial-gradient(circle at 50% 100%, rgba(15,110,82,0.06), transparent 30%),
-      linear-gradient(180deg, #FBFAF5 0%, #F3EDE1 100%);
-}
-
-.stApp::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.055;
-    background-image:
-      linear-gradient(30deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
-      linear-gradient(150deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
-      linear-gradient(30deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
-      linear-gradient(150deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45));
-    background-size: 82px 142px;
-    background-position: 0 0, 0 0, 41px 71px, 41px 71px;
-    z-index: 0;
-}
-
-.stApp > * {
-    position: relative;
-    z-index: 1;
+      linear-gradient(180deg, #FBFAF5 0%, #F4EFE5 100%);
 }
 
 #MainMenu, footer, header {
     visibility: hidden;
 }
 
-/* Hide Streamlit sidebar completely for a full executive layout */
-section[data-testid="stSidebar"] {
-    display: none !important;
-}
-
 .block-container {
-    max-width: 1360px !important;
-    padding-top: 1rem !important;
-    padding-bottom: 1.6rem !important;
+    max-width: 1280px !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 1.4rem !important;
 }
 
-/* Premium top navigation */
-.top-nav {
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:10px;
-    margin: -4px 0 18px 0;
+section[data-testid="stSidebar"] {
+    width: 205px !important;
+    min-width: 205px !important;
+    max-width: 205px !important;
+    background:
+      linear-gradient(180deg, #092F29 0%, #0B3C34 52%, #082C27 100%) !important;
+    border-left: 1px solid rgba(199,163,90,0.38) !important;
+    box-shadow: -14px 0 38px rgba(8,46,40,0.12);
 }
 
-div[data-testid="stHorizontalBlock"] {
-    gap: 0.85rem !important;
+section[data-testid="stSidebar"] > div {
+    width: 205px !important;
+    min-width: 205px !important;
+    max-width: 205px !important;
+    padding-top: 1.1rem !important;
 }
 
-.nav-shell {
-    background: rgba(255,255,255,0.72);
-    border: 1px solid rgba(199,163,90,0.24);
-    border-radius: 22px;
-    padding: 8px;
-    box-shadow: 0 14px 32px rgba(8,46,40,0.055);
-    backdrop-filter: blur(14px);
+.sidebar-wrap {
+    text-align:center;
+    padding: 20px 10px 12px 10px;
+}
+
+.sidebar-mark {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px auto;
+    border-radius: 16px;
+    display:grid;
+    place-items:center;
+    color:#F6E7BE;
+    border:1px solid rgba(246,231,190,0.34);
+    background:rgba(255,255,255,0.055);
+    font-size: 18px;
+    font-weight:900;
+}
+
+.sidebar-title {
+    color:#FFF8E8;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing:-0.2px;
+}
+
+.sidebar-sub {
+    color:#D8BD78;
+    font-size: 10px;
+    font-weight:700;
+    margin-top: 6px;
+}
+
+.sidebar-line {
+    height:1px;
+    background: linear-gradient(90deg, transparent, rgba(216,189,120,0.7), transparent);
+    margin: 18px 20px 22px 20px;
+}
+
+section[data-testid="stSidebar"] .stButton {
+    display: flex !important;
+    justify-content: center !important;
+}
+
+section[data-testid="stSidebar"] .stButton button {
+    width: 165px !important;
+    padding: 0 14px !important;
+    background: rgba(255,255,255,0.055) !important;
+    color: #F7F1E3 !important;
+    border: 1px solid rgba(246,231,190,0.12) !important;
+    text-align: center !important;
+    font-weight: 800 !important;
+    font-size: 12px !important;
+    border-radius: 14px !important;
+    height: 38px !important;
+    margin-bottom: 12px !important;
+    box-shadow: none !important;
+    transition: 0.2s ease;
+}
+
+section[data-testid="stSidebar"] .stButton button:hover {
+    background: rgba(199,163,90,0.20) !important;
+    border-color: rgba(246,231,190,0.30) !important;
+    color: #FFF8E8 !important;
 }
 
 .stButton button {
-    background: linear-gradient(135deg, #0F6E52, #062B25) !important;
+    background: linear-gradient(135deg, #0F6E52, #082E28) !important;
     color: white !important;
-    border: 1px solid rgba(199,163,90,0.22) !important;
+    border: 1px solid rgba(199,163,90,0.24) !important;
     outline: none !important;
-    box-shadow: 0 16px 30px rgba(8,46,40,0.13) !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.15) !important;
     border-radius: 16px !important;
     height: 44px !important;
     font-weight: 900 !important;
     font-size: 13px !important;
-    transition: all 0.18s ease !important;
 }
 
 .stButton button:hover {
-    filter: brightness(1.06);
+    filter: brightness(1.04);
     transform: translateY(-1px);
-    box-shadow: 0 20px 36px rgba(8,46,40,0.16) !important;
 }
 
 .stButton button:focus,
 .stButton button:active {
     outline: none !important;
-    box-shadow: 0 16px 30px rgba(8,46,40,0.13) !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.15) !important;
 }
 
 .main-header {
     position: relative;
     overflow: hidden;
     background:
-      linear-gradient(135deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96)),
-      radial-gradient(circle at 18% 30%, rgba(199,163,90,0.18), transparent 26%);
-    border: 1px solid rgba(199,163,90,0.38);
-    border-radius: 30px;
-    padding: 22px 30px;
-    min-height: 118px;
+      linear-gradient(135deg, rgba(8,46,40,0.98), rgba(18,75,64,0.96)),
+      radial-gradient(circle at 18% 30%, rgba(199,163,90,0.18), transparent 22%);
+    border: 1px solid rgba(199,163,90,0.35);
+    border-radius: 26px;
+    padding: 18px 26px;
+    min-height: 104px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 28px 58px rgba(8,46,40,0.15);
+    box-shadow: 0 22px 48px rgba(8,46,40,0.14);
     margin-bottom: 16px;
 }
 
@@ -837,57 +812,43 @@ div[data-testid="stHorizontalBlock"] {
     position:absolute;
     inset:0;
     background:
-      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.06) 44%, transparent 72%);
+      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.05) 45%, transparent 70%);
     pointer-events:none;
-}
-
-.main-header::after {
-    content:"";
-    position:absolute;
-    left:22px;
-    top:22px;
-    width:72px;
-    height:72px;
-    border-radius:22px;
-    border:1px solid rgba(216,189,120,0.36);
-    background:
-      linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-    box-shadow: inset 0 0 28px rgba(216,189,120,0.08);
 }
 
 .header-main-title {
     color: #FFF8E8;
-    font-size: 29px;
+    font-size: 24px;
     font-weight: 900;
     text-align: center;
-    letter-spacing:-0.7px;
+    letter-spacing:-0.4px;
 }
 
 .header-subtitle {
     color: #D8BD78;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 800;
     text-align: center;
-    margin-top: 8px;
+    margin-top: 7px;
 }
 
 .header-decor {
-    width: 300px;
+    width: 250px;
     height: 2px;
     background: linear-gradient(90deg, transparent, #D8BD78, transparent);
-    margin: 12px auto 0 auto;
+    margin: 10px auto 0 auto;
 }
 
 .header-logo-box {
-    width: 58px;
-    height: 58px;
-    border-radius: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
     background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(216,189,120,0.42);
+    border: 1px solid rgba(216,189,120,0.45);
     display: grid;
     place-items: center;
     color:#F6E7BE;
-    font-size: 24px;
+    font-size: 20px;
     font-weight:900;
 }
 
@@ -895,25 +856,24 @@ div[data-testid="stHorizontalBlock"] {
     position:relative;
     overflow:hidden;
     background:
-      linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,251,242,0.80));
+      linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.86));
     border: 1px solid var(--line);
-    border-radius: 30px;
-    padding: 38px 36px;
+    border-radius: 28px;
+    padding: 34px 34px;
     text-align:center;
     margin-bottom: 18px;
-    box-shadow: 0 26px 60px rgba(8,46,40,0.075);
-    backdrop-filter: blur(14px);
+    box-shadow: 0 24px 55px rgba(8,46,40,0.07);
 }
 
 .hero-box::after {
     content:"";
     position:absolute;
-    width:280px;
-    height:280px;
+    width:250px;
+    height:250px;
     border-radius:50%;
     background:rgba(15,110,82,0.055);
-    left:-100px;
-    bottom:-135px;
+    left:-90px;
+    bottom:-120px;
 }
 
 .hero-kicker {
@@ -929,65 +889,58 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .hero-title {
-    color:#062B25;
-    font-size:34px;
+    color:#082E28;
+    font-size:30px;
     font-weight:900;
-    letter-spacing:-1px;
+    letter-spacing:-0.8px;
 }
 
 .hero-sub {
-    color:#A87312;
-    font-size:15px;
+    color:#B88318;
+    font-size:14px;
     font-weight:900;
-    margin-top:10px;
+    margin-top:8px;
 }
 
 .hero-text {
-    color:#465651;
+    color:#4E5B55;
     font-size:14px;
     font-weight:700;
-    margin:16px auto 0 auto;
-    line-height:1.95;
-    max-width:780px;
+    margin:14px auto 0 auto;
+    line-height:1.9;
+    max-width:760px;
 }
 
 .feature-card {
     position:relative;
     overflow:hidden;
-    background: rgba(255,255,255,0.74);
-    border: 1px solid rgba(201,169,95,0.24);
-    border-radius: 24px;
-    padding: 24px 20px;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(201,169,95,0.26);
+    border-radius: 22px;
+    padding: 22px 18px;
     text-align:right;
-    box-shadow: 0 22px 45px rgba(8,46,40,0.055);
-    min-height: 136px;
-    backdrop-filter: blur(12px);
-    transition:0.18s ease;
-}
-
-.feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 28px 58px rgba(8,46,40,0.075);
+    box-shadow: 0 18px 38px rgba(8,46,40,0.055);
+    min-height: 132px;
 }
 
 .feature-icon {
-    width:40px;
-    height:40px;
-    border-radius:15px;
+    width:36px;
+    height:36px;
+    border-radius:14px;
     display:grid;
     place-items:center;
     background:rgba(8,46,40,0.06);
     border:1px solid rgba(199,163,90,0.28);
-    color:#A87312;
+    color:#B88318;
     font-size:13px;
     font-weight:900;
-    margin-bottom:12px;
+    margin-bottom:10px;
 }
 
 .feature-title {
-    color:#062B25;
+    color:#082E28;
     font-weight:900;
-    font-size:17px;
+    font-size:16px;
 }
 
 .feature-desc {
@@ -995,157 +948,94 @@ div[data-testid="stHorizontalBlock"] {
     font-weight:700;
     font-size:12px;
     margin-top:8px;
-    line-height:1.75;
-}
-
-/* Main prediction KPI */
-.main-kpi-card {
-    position:relative;
-    overflow:hidden;
-    background:
-      linear-gradient(135deg, rgba(6,43,37,0.98), rgba(15,110,82,0.94));
-    border: 1px solid rgba(216,189,120,0.38);
-    border-radius: 32px;
-    padding: 30px 34px;
-    min-height: 238px;
-    text-align: center;
-    box-shadow: 0 30px 66px rgba(8,46,40,0.18);
-}
-
-.main-kpi-card::before {
-    content:"";
-    position:absolute;
-    inset:0;
-    background:
-      radial-gradient(circle at 16% 18%, rgba(216,189,120,0.18), transparent 26%),
-      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.055) 48%, transparent 72%);
-    pointer-events:none;
-}
-
-.main-kpi-kicker {
-    width:fit-content;
-    margin:0 auto 12px auto;
-    padding:7px 16px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.08);
-    color:#F5E7C2;
-    border:1px solid rgba(245,231,194,0.18);
-    font-size:12px;
-    font-weight:900;
-}
-
-.main-kpi-number {
-    color:#FFFFFF;
-    font-size:64px;
-    font-weight:900;
-    line-height:1.05;
-    letter-spacing:-2px;
-}
-
-.main-kpi-label {
-    color:#D8BD78;
-    font-size:15px;
-    font-weight:900;
-    margin-top:10px;
-}
-
-.main-kpi-meta {
-    margin-top:18px;
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-}
-
-.main-kpi-meta span {
-    padding:7px 12px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.08);
-    color:#F7F1E3;
-    border:1px solid rgba(255,255,255,0.09);
-    font-size:11px;
-    font-weight:800;
+    line-height:1.7;
 }
 
 .metric-card {
-    position:relative;
-    overflow:hidden;
-    border: 1px solid rgba(201,169,95,0.28);
+    border: 1px solid rgba(201,169,95,0.34);
     border-radius: 24px;
     padding: 18px 18px;
-    min-height: 136px;
+    min-height: 134px;
     text-align: right;
-    backdrop-filter: blur(14px);
     transition:0.18s ease;
 }
 
 .metric-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 24px 46px rgba(8,46,40,0.08) !important;
+    transform: translateY(-2px);
+}
+
+.metric-top {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.metric-tag {
+    min-width:34px;
+    height:28px;
+    border-radius:999px;
+    border:1px solid;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:900;
+    padding:0 10px;
+    background:rgba(255,255,255,0.58);
 }
 
 .metric-label {
-    color:#68766F;
+    color:#6D756F;
     font-size:12px;
     font-weight:900;
 }
 
 .metric-value {
-    font-size:30px;
+    font-size:28px;
     font-weight:900;
-    line-height:1.2;
-    margin-top:16px;
-    letter-spacing:-0.5px;
+    line-height:1.25;
+    margin-top:14px;
+    letter-spacing:-0.4px;
 }
 
 .metric-subtitle {
     color:#6D756F;
     font-size:11px;
     font-weight:800;
-    margin-top:9px;
-}
-
-.metric-accent {
-    position:absolute;
-    right:0;
-    bottom:0;
-    height:4px;
-    width:100%;
-    opacity:0.65;
+    margin-top:8px;
 }
 
 .reco-box {
     position:relative;
     overflow:hidden;
-    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.82));
+    background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,251,242,0.86));
     border: 1px solid rgba(201,169,95,0.34);
-    border-radius: 26px;
-    padding: 20px 26px;
-    box-shadow: 0 22px 48px rgba(8,46,40,0.075);
-    backdrop-filter: blur(14px);
+    border-radius: 24px;
+    padding: 18px 24px;
+    box-shadow: 0 18px 42px rgba(8,46,40,0.07);
 }
 
 .reco-label {
     text-align:center;
-    color:#786A4E;
+    color:#7A6D50;
     font-size:11px;
     font-weight:900;
 }
 
 .reco-title {
     text-align:center;
-    font-size:26px;
+    font-size:24px;
     font-weight:900;
-    margin-top:5px;
-    letter-spacing:-0.5px;
+    margin-top:4px;
+    letter-spacing:-0.4px;
 }
 
 .reco-line {
-    width:132px;
+    width:120px;
     height:2px;
     background: linear-gradient(90deg, transparent, #C7A35A, transparent);
-    margin:9px auto 10px auto;
+    margin:8px auto 9px auto;
 }
 
 .reco-text {
@@ -1153,13 +1043,13 @@ div[data-testid="stHorizontalBlock"] {
     color:#31413B;
     font-size:14px;
     font-weight:700;
-    line-height:1.95;
-    max-width:1000px;
+    line-height:1.9;
+    max-width:960px;
     margin:auto;
 }
 
-.small-pill {
-    background: rgba(255,255,255,0.84);
+.insight-pill {
+    background: rgba(255,255,255,0.86);
     border: 1px solid rgba(201,169,95,0.32);
     color:#5D5138;
     border-radius: 999px;
@@ -1172,10 +1062,9 @@ div[data-testid="stHorizontalBlock"] {
     font-size:11px;
     font-weight:900;
     box-shadow:0 12px 28px rgba(8,46,40,0.05);
-    backdrop-filter: blur(12px);
 }
 
-.pill-icon {
+.insight-icon {
     min-width:30px;
     height:24px;
     border-radius:999px;
@@ -1190,71 +1079,69 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .section-box {
-    background: rgba(255,255,255,0.74);
-    border: 1px solid rgba(201,169,95,0.23);
-    border-radius: 24px;
-    padding: 14px 18px;
-    box-shadow: 0 18px 40px rgba(8,46,40,0.055);
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(201,169,95,0.25);
+    border-radius: 22px;
+    padding: 13px 16px;
+    box-shadow: 0 16px 36px rgba(8,46,40,0.05);
     height: 100%;
-    backdrop-filter: blur(12px);
 }
 
 .section-title {
     text-align:right;
-    color:#062B25;
-    font-size:16px;
+    color:#082E28;
+    font-size:15px;
     font-weight:900;
 }
 
 .section-line {
-    width:92px;
+    width:86px;
     height:2px;
     background: linear-gradient(90deg, #C7A35A, transparent);
     margin: 8px 0 8px auto;
 }
 
 .suggest-box {
-    background: linear-gradient(180deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96));
-    border: 1px solid rgba(199,163,90,0.34);
-    border-radius: 28px;
-    padding: 26px 22px;
+    background: linear-gradient(180deg, rgba(8,46,40,0.98), rgba(18,75,64,0.97));
+    border: 1px solid rgba(199,163,90,0.32);
+    border-radius: 26px;
+    padding: 24px 20px;
     text-align:center;
-    box-shadow: 0 24px 52px rgba(8,46,40,0.18);
+    box-shadow: 0 20px 45px rgba(8,46,40,0.16);
 }
 
 .side-suggest-box {
-    min-height: 216px;
+    min-height: 192px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-top: 18px;
+    margin-top: 28px;
 }
 
 .suggest-title {
     color:#FFF8E8;
-    font-size:24px;
+    font-size:22px;
     font-weight:900;
     text-align:center;
-    letter-spacing:-0.5px;
+    letter-spacing:-0.4px;
 }
 
 .suggest-sub {
     color:#D8BD78;
     font-size:12px;
     font-weight:800;
-    margin-top:12px;
-    line-height:1.95;
+    margin-top:10px;
+    line-height:1.9;
 }
 
 .best-card {
-    background: linear-gradient(135deg, rgba(236,247,240,0.98), rgba(255,255,255,0.92));
-    border: 1px solid rgba(15,139,95,0.22);
-    border-radius: 26px;
-    padding: 20px 16px;
+    background: linear-gradient(135deg, rgba(236,247,240,0.98), rgba(255,255,255,0.94));
+    border: 1px solid rgba(15,139,95,0.20);
+    border-radius: 24px;
+    padding: 18px 16px;
     margin-top: 14px;
     text-align: center;
-    box-shadow: 0 20px 42px rgba(15,139,95,0.10);
-    backdrop-filter: blur(12px);
+    box-shadow: 0 18px 36px rgba(15,139,95,0.09);
 }
 
 .best-kicker {
@@ -1269,8 +1156,8 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .best-title {
-    color: #062B25;
-    font-size: 25px;
+    color: #082E28;
+    font-size: 24px;
     font-weight: 900;
     line-height: 1.5;
 }
@@ -1287,7 +1174,7 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .best-meta strong {
-    color: #062B25;
+    color: #082E28;
     font-weight: 900;
 }
 
@@ -1300,35 +1187,34 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .form-shell {
-    background: linear-gradient(135deg, rgba(255,255,255,0.90), rgba(255,251,242,0.80)) !important;
-    border:1px solid rgba(201,169,95,0.30) !important;
-    border-radius: 30px !important;
-    padding: 30px 34px !important;
-    box-shadow: 0 26px 58px rgba(8,46,40,0.075);
-    backdrop-filter: blur(14px);
+    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.86)) !important;
+    border:1px solid rgba(201,169,95,0.32) !important;
+    border-radius: 28px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 22px 48px rgba(8,46,40,0.07);
 }
 
 .form-title {
     text-align:center;
-    color:#062B25;
-    font-size:28px;
+    color:#082E28;
+    font-size:26px;
     font-weight:900;
-    letter-spacing:-0.6px;
+    letter-spacing:-0.5px;
 }
 
 .form-sub {
     text-align:center;
-    color:#A87312;
-    font-size:13px;
+    color:#B88318;
+    font-size:12px;
     font-weight:900;
     margin-top:8px;
 }
 
 .form-line {
-    width:280px;
+    width:260px;
     height:2px;
     background:linear-gradient(90deg, transparent, #C7A35A, transparent);
-    margin:14px auto 18px auto;
+    margin:13px auto 18px auto;
 }
 
 .form-section {
@@ -1345,52 +1231,41 @@ div[data-testid="stHorizontalBlock"] {
 
 .stTextInput input, .stSelectbox > div > div {
     background:#FFFEFA !important;
-    border:1px solid rgba(201,169,95,0.36) !important;
-    border-radius:16px !important;
-    min-height:46px !important;
-    box-shadow:0 12px 28px rgba(8,46,40,0.035);
+    border:1px solid rgba(201,169,95,0.38) !important;
+    border-radius:14px !important;
+    min-height:44px !important;
+    box-shadow:0 10px 24px rgba(8,46,40,0.035);
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 0.85rem !important;
 }
 
 @media (max-width: 900px) {
-    .header-main-title { font-size: 21px; }
-    .hero-title { font-size: 26px; }
-    .main-kpi-number { font-size: 46px; }
-    .metric-value { font-size: 24px; }
+    section[data-testid="stSidebar"] {
+        width: 170px !important;
+        min-width: 170px !important;
+        max-width: 170px !important;
+    }
+    .header-main-title { font-size: 19px; }
+    .hero-title { font-size: 24px; }
+    .metric-value { font-size: 23px; }
 }
 </style>
 """)
 
 
-
 def show_header():
     H("""
     <div class="main-header">
-        <div class="header-logo-box">◇</div>
+        <div class="header-logo-box">AI</div>
         <div style="flex:1;">
-            <div class="header-main-title">نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين</div>
-            <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
+            <div class="header-main-title">نظام ذكي للتنبؤ بالازدحام وتوصية أوقات الزيارة</div>
+            <div class="header-subtitle">تحليل تنبؤي لمستويات ازدحام المعتمرين في المسجد الحرام</div>
             <div class="header-decor"></div>
         </div>
     </div>
     """)
-
-
-def render_nav():
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("الرئيسية", use_container_width=True):
-            st.session_state.page = "home"
-            st.rerun()
-    with c2:
-        if st.button("إدخال البيانات", use_container_width=True):
-            st.session_state.page = "input"
-            st.rerun()
-    with c3:
-        if st.button("لوحة النتائج", use_container_width=True):
-            st.session_state.page = "dashboard"
-            st.rerun()
-    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-
 
 if "page" not in st.session_state:
     st.session_state.page = "home"
@@ -1402,20 +1277,40 @@ if "show_best_day" not in st.session_state:
     st.session_state.show_best_day = False
 
 
+with st.sidebar:
+    H("""
+    <div class="sidebar-wrap">
+        <div class="sidebar-mark">AI</div>
+        <div class="sidebar-title">منصة التنبؤ</div>
+        <div class="sidebar-sub">ازدحام المعتمرين</div>
+        <div class="sidebar-line"></div>
+    </div>
+    """)
+
+    if st.button("الرئيسية"):
+        st.session_state.page = "home"
+        st.rerun()
+
+    if st.button("إدخال البيانات"):
+        st.session_state.page = "input"
+        st.rerun()
+
+    if st.button("لوحة النتائج"):
+        st.session_state.page = "dashboard"
+        st.rerun()
 
 
 def home_page():
     show_header()
-    render_nav()
 
     H("""
     <div class="hero-box">
-        <div class="hero-kicker">نظام تنبؤ وتوصية</div>
+        <div class="hero-kicker">نظام تنبؤ وتوصية مدعوم بالذكاء الاصطناعي</div>
         <div class="hero-title">توقع الازدحام قبل الوصول</div>
-        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت أداء العمرة الأنسب</div>
+        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت زيارة أنسب</div>
         <div class="hero-text">
             يعرض النظام العدد المتوقع للمعتمرين، ومستوى الازدحام، والتوصية المناسبة بناءً على التنبؤات اليومية
-            والمقارنة بين الأيام القريبة في المسجد الحرام.
+            والمقارنة بين الأيام القريبة داخل المسجد الحرام.
         </div>
     </div>
     """)
@@ -1450,7 +1345,6 @@ def home_page():
 
 def input_page():
     show_header()
-    render_nav()
 
     df_dates = load_data()
 
@@ -1534,7 +1428,6 @@ def input_page():
 
 def dashboard_page():
     show_header()
-    render_nav()
 
     if not st.session_state.entered:
         st.warning("الرجاء إدخال البيانات أولًا.")
@@ -1582,19 +1475,20 @@ def dashboard_page():
 
     best_day = get_best_day(df7, day, month)
 
-    main_col, side_col = st.columns([1.55, 1], gap="large")
+    c1, c2, c3, c4 = st.columns(4)
 
-    with main_col:
-        main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
+    with c1:
+        top_card("اليوم المختار", weekday, hijri_date, "01")
 
-    with side_col:
-        s1, s2 = st.columns(2)
-        with s1:
-            top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "", crowd_level)
-        with s2:
-            top_card("اليوم المختار", weekday, hijri_date, "")
-        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
-        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "")
+    with c2:
+        top_card("العدد المتوقع للمعتمرين", format_number(prediction), "معتمر", "02")
+
+    with c3:
+        top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "03", crowd_level)
+
+    with c4:
+        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "04")
+
     st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
     H(f"""
@@ -1647,7 +1541,7 @@ def dashboard_page():
         </div>
         """)
 
-        fig = build_chart(df7, month, day)
+        fig = build_chart(df7)
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
