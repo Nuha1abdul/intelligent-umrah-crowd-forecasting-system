@@ -658,11 +658,31 @@ def top_card(title, value, subtitle, icon="", level=None):
 def main_prediction_card(value, level, day_name, hijri_date):
     level = normalize_level(level)
     color = LEVEL_COLORS.get(level, "#0F6E52")
+
+    low_active = "active" if level == "منخفض" else ""
+    med_active = "active" if level == "متوسط" else ""
+    high_active = "active" if level == "مرتفع" else ""
+
     H(f"""
-    <div class="main-kpi-card crowding-hero refined-kpi" style="--level-color:{color};">
-        <div class="main-kpi-kicker">التوصية الذكية</div>
-        <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
-        <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
+    <div class="main-kpi-card crowding-hero refined-kpi balanced-kpi" style="--level-color:{color};">
+        <div class="kpi-pattern"></div>
+
+        <div class="kpi-top-row">
+            <div class="main-kpi-kicker">التوصية الذكية</div>
+            <div class="kpi-status-dot"></div>
+        </div>
+
+        <div class="kpi-content">
+            <div class="kpi-side-note">قراءة فورية لمستوى الازدحام</div>
+            <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
+            <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
+        </div>
+
+        <div class="risk-scale">
+            <div class="risk-step {low_active}">منخفض</div>
+            <div class="risk-step {med_active}">متوسط</div>
+            <div class="risk-step {high_active}">مرتفع</div>
+        </div>
     </div>
     """)
 
@@ -1773,7 +1793,7 @@ def dashboard_page():
 
     best_day = get_best_day(df7, day, month)
 
-    main_col, side_col = st.columns([1.55, 1], gap="large")
+    main_col, side_col = st.columns([1.42, 1], gap="large")
 
     with main_col:
         main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
@@ -1936,6 +1956,194 @@ H("""
     }
     .refined-kpi .crowding-level-text {
         font-size: 52px !important;
+    }
+}
+</style>
+""")
+
+
+
+H("""
+<style>
+/* Balance fix: reduce boxy feeling and make the hero card feel designed, not empty */
+.block-container {
+    max-width: 1320px !important;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 1.15rem !important;
+}
+
+.balanced-kpi {
+    min-height: 332px !important;
+    padding: 26px 34px !important;
+    border-radius: 34px !important;
+    display: grid !important;
+    grid-template-rows: auto 1fr auto !important;
+    align-items: center !important;
+    position: relative !important;
+    isolation: isolate !important;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(216,189,120,0.18), transparent 26%),
+      radial-gradient(circle at 82% 72%, rgba(255,255,255,0.08), transparent 30%),
+      linear-gradient(135deg, #052A24 0%, #0C4A3E 52%, #062B25 100%) !important;
+}
+
+.balanced-kpi::before {
+    opacity: 0.065 !important;
+}
+
+.balanced-kpi::after {
+    background:
+      linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.075) 42%, transparent 72%),
+      radial-gradient(circle at 100% 100%, rgba(199,163,90,0.14), transparent 35%) !important;
+}
+
+.kpi-pattern {
+    position: absolute;
+    inset: 18px 22px auto auto;
+    width: 170px;
+    height: 170px;
+    opacity: 0.12;
+    border-radius: 34px;
+    background:
+      linear-gradient(60deg, rgba(216,189,120,0.9) 1px, transparent 1px),
+      linear-gradient(120deg, rgba(216,189,120,0.75) 1px, transparent 1px);
+    background-size: 20px 20px;
+    mask-image: radial-gradient(circle, black 0%, transparent 72%);
+    -webkit-mask-image: radial-gradient(circle, black 0%, transparent 72%);
+    z-index: 1;
+}
+
+.kpi-top-row {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.kpi-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--level-color);
+    box-shadow: 0 0 0 7px rgba(255,255,255,0.07);
+}
+
+.kpi-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    transform: translateY(-2px);
+}
+
+.kpi-side-note {
+    width: fit-content;
+    margin: 0 auto 10px auto;
+    color: rgba(255,248,232,0.72);
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.balanced-kpi .crowding-level-text {
+    font-size: 82px !important;
+    line-height: 0.95 !important;
+    margin: 0 0 12px 0 !important;
+    text-shadow: 0 16px 36px rgba(0,0,0,0.16) !important;
+}
+
+.balanced-kpi .main-kpi-label {
+    font-size: 17px !important;
+    margin: 0 !important;
+    color: #E1C985 !important;
+}
+
+.risk-scale {
+    position: relative;
+    z-index: 3;
+    width: min(520px, 92%);
+    margin: 0 auto;
+    padding: 7px;
+    border-radius: 999px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.risk-step {
+    text-align: center;
+    border-radius: 999px;
+    padding: 8px 10px;
+    color: rgba(255,248,232,0.62);
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.risk-step.active {
+    color: #FFF8E8;
+    background: rgba(255,255,255,0.13);
+    border: 1px solid var(--level-color);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.12);
+}
+
+.vertical-metric-card {
+    min-height: 96px !important;
+    padding: 14px 18px !important;
+    border-radius: 24px !important;
+    box-shadow: 0 18px 36px rgba(6,43,37,0.065) !important;
+}
+
+.metric-icon-badge {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    font-size: 21px !important;
+}
+
+.vertical-metric-card .metric-value {
+    font-size: 27px !important;
+}
+
+.reco-box {
+    padding: 20px 28px !important;
+    border-radius: 28px !important;
+    margin-top: 4px !important;
+}
+
+.reco-title {
+    font-size: 27px !important;
+}
+
+.small-pill {
+    margin-top: 2px !important;
+}
+
+.section-box {
+    min-height: 54px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 900px) {
+    .balanced-kpi {
+        min-height: 250px !important;
+        padding: 22px !important;
+    }
+    .balanced-kpi .crowding-level-text {
+        font-size: 52px !important;
+    }
+    .risk-scale {
+        width: 100%;
     }
 }
 </style>
