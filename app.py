@@ -1289,9 +1289,8 @@ def home_page():
 
     H("""
     <div class="hero-box">
-      <div class="hero-badge">نظام دعم القرار</div>
-      <div class="hero-title">اختر الوقت الأنسب للعمرة</div>
-      <div class="hero-gold">توقع مستوى الازدحام والحصول على توصية للوقت الأنسب للزيارة</div>
+      <div class="hero-title">مرحباً بك في نظام التنبؤ بازدحام المعتمرين</div>
+      <div class="hero-gold">Umrah Visitors Smart Forecasting System</div>
       <div class="hero-body">
         يعرض النظام العدد المتوقع للمعتمرين ومستوى الازدحام والتوصية المناسبة
         لمساعدتك في اختيار أنسب وقت لأداء العمرة.
