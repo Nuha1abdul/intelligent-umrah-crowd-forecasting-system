@@ -652,18 +652,18 @@ def top_card(title, value, subtitle, icon="", level=None):
     """)
 
 
-def main_prediction_card(value, level, day_name, hijri_date):
+def main_prediction_card(level, prediction_value, day_name, hijri_date):
     level = normalize_level(level)
     color = LEVEL_COLORS.get(level, "#0F6E52")
     H(f"""
     <div class="main-kpi-card">
         <div class="main-kpi-kicker">التوقع الرئيسي</div>
-        <div class="main-kpi-number">{esc(value)}</div>
-        <div class="main-kpi-label">العدد المتوقع للمعتمرين</div>
+        <div class="main-kpi-number" style="color:{color};">{esc(level)}</div>
+        <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
         <div class="main-kpi-meta">
+            <span>العدد المتوقع للمعتمرين: <strong>{esc(prediction_value)}</strong></span>
             <span>اليوم المختار: <strong>{esc(day_name)}</strong></span>
             <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
-            <span style="color:{color};">مستوى الازدحام: <strong>{esc(level)}</strong></span>
         </div>
     </div>
     """)
@@ -1592,12 +1592,12 @@ def dashboard_page():
     main_col, side_col = st.columns([1.55, 1], gap="large")
 
     with main_col:
-        main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
+        main_prediction_card(crowd_level, format_number(prediction), weekday, hijri_date)
 
     with side_col:
         s1, s2 = st.columns(2)
         with s1:
-            top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "", crowd_level)
+            top_card("العدد المتوقع للمعتمرين", format_number(prediction), "معتمر", "")
         with s2:
             top_card("اليوم المختار", weekday, hijri_date, "")
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
