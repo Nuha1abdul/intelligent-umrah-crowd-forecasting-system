@@ -9,7 +9,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين",
-    page_icon="🌙",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -656,16 +656,14 @@ def main_prediction_card(value, level, day_name, hijri_date):
     level = normalize_level(level)
     color = LEVEL_COLORS.get(level, "#0F6E52")
     H(f"""
-    <div class="main-kpi-card crowding-hero" style="--level-color:{color};">
-        <div class="hero-orb hero-orb-1"></div>
-        <div class="hero-orb hero-orb-2"></div>
-        <div class="main-kpi-kicker">مؤشر القرار الرئيسي</div>
+    <div class="main-kpi-card crowding-hero refined-kpi" style="--level-color:{color};">
+        <div class="main-kpi-kicker">التوصية الذكية</div>
         <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
         <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
-        <div class="main-kpi-meta">
-            <span>اليوم المختار: <strong>{esc(day_name)}</strong></span>
-            <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
-            <span>العدد المتوقع: <strong>{esc(value)}</strong></span>
+        <div class="main-kpi-meta refined-meta">
+            <span>👥 <strong>{esc(value)}</strong> معتمر</span>
+            <span>📅 <strong>{esc(day_name)}</strong></span>
+            <span>🗓 <strong>{esc(hijri_date)}</strong></span>
         </div>
     </div>
     """)
@@ -1461,22 +1459,113 @@ H("""
 
 def show_header():
     H("""
-    <div class="main-header premium-header">
-        <div class="brand-mark">
-            <div class="brand-crescent">☾</div>
-            <div class="brand-spark">✦</div>
-        </div>
-        <div style="flex:1;">
-            <div class="header-main-title">التوقع الذكي لإزدحام المعتمرين</div>
-            <div class="header-subtitle">اختيار الوقت الأنسب لأداء العمرة بناءً على التوقعات المستقبلية</div>
+    <div class="main-header premium-header clean-header">
+        <div class="header-center">
+            <div class="header-main-title">المنصة الذكية لتوقع الازدحام</div>
+            <div class="header-subtitle">
+                اختيار الوقت الأنسب للعمرة اعتمادًا على<br>
+                التوقعات المستقبلية وتحليل مستويات الازدحام
+            </div>
             <div class="header-decor"></div>
-        </div>
-        <div class="header-status">
-            <span class="status-dot"></span>
-          التنبؤ الذكي
         </div>
     </div>
     """)
+
+
+
+H("""
+<style>
+/* Final clean executive header without logo/icon */
+.clean-header {
+    justify-content: center !important;
+    text-align: center !important;
+    min-height: 128px !important;
+    padding: 26px 34px !important;
+}
+
+.clean-header .header-center {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+}
+
+.clean-header .header-main-title {
+    font-size: 34px !important;
+    letter-spacing: -0.8px !important;
+}
+
+.clean-header .header-subtitle {
+    line-height: 1.8 !important;
+    font-size: 14px !important;
+    margin-top: 8px !important;
+}
+
+.clean-header::before {
+    opacity: 0.09 !important;
+}
+
+.clean-header::after {
+    opacity: 0.85 !important;
+}
+
+/* Refined KPI card: less empty, cleaner, presentation-ready */
+.refined-kpi {
+    min-height: 232px !important;
+    padding: 30px 38px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.refined-kpi .main-kpi-kicker {
+    margin-bottom: 12px !important;
+}
+
+.refined-kpi .crowding-level-text {
+    font-size: 78px !important;
+    line-height: 0.95 !important;
+    margin: 2px 0 8px 0 !important;
+}
+
+.refined-kpi .main-kpi-label {
+    margin-top: 6px !important;
+    color: #E1C985 !important;
+}
+
+.refined-meta {
+    margin-top: 18px !important;
+    gap: 12px !important;
+}
+
+.refined-meta span {
+    min-width: 138px !important;
+    text-align: center !important;
+    padding: 9px 15px !important;
+    background: rgba(255,255,255,0.10) !important;
+    border: 1px solid rgba(255,255,255,0.13) !important;
+}
+
+/* Remove old icon/status visually if any previous CSS remains */
+.brand-mark,
+.header-status,
+.header-logo-box {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .clean-header .header-main-title {
+        font-size: 24px !important;
+    }
+    .clean-header .header-subtitle {
+        font-size: 12px !important;
+    }
+    .refined-kpi .crowding-level-text {
+        font-size: 50px !important;
+    }
+}
+</style>
+""")
 
 
 def render_nav():
