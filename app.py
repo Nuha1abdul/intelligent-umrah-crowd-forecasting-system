@@ -9,7 +9,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين",
-    page_icon="🌙",
+    page_icon="◇",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -656,16 +656,14 @@ def main_prediction_card(value, level, day_name, hijri_date):
     level = normalize_level(level)
     color = LEVEL_COLORS.get(level, "#0F6E52")
     H(f"""
-    <div class="main-kpi-card crowding-hero" style="--level-color:{color};">
-        <div class="hero-orb hero-orb-1"></div>
-        <div class="hero-orb hero-orb-2"></div>
-        <div class="main-kpi-kicker">مؤشر القرار الرئيسي</div>
-        <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
-        <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
+    <div class="main-kpi-card">
+        <div class="main-kpi-kicker">التوقع الرئيسي</div>
+        <div class="main-kpi-number">{esc(value)}</div>
+        <div class="main-kpi-label">العدد المتوقع للمعتمرين</div>
         <div class="main-kpi-meta">
             <span>اليوم المختار: <strong>{esc(day_name)}</strong></span>
             <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
-            <span>العدد المتوقع: <strong>{esc(value)}</strong></span>
+            <span style="color:{color};">مستوى الازدحام: <strong>{esc(level)}</strong></span>
         </div>
     </div>
     """)
@@ -1278,209 +1276,21 @@ div[data-testid="stHorizontalBlock"] { gap: 0.9rem !important; }
 
 
 
-H("""
-<style>
-/* Global premium overrides */
-.stApp {
-    background:
-      radial-gradient(circle at 14% 12%, rgba(199,163,90,0.18), transparent 24%),
-      radial-gradient(circle at 86% 9%, rgba(15,110,82,0.14), transparent 26%),
-      radial-gradient(circle at 55% 100%, rgba(6,43,37,0.08), transparent 34%),
-      linear-gradient(135deg, #FBFAF5 0%, #F2E9D9 48%, #F8F5EC 100%) !important;
-}
-
-.block-container {
-    max-width: 1400px !important;
-    padding-top: 0.9rem !important;
-}
-
-.premium-header {
-    min-height: 112px !important;
-    padding: 20px 30px !important;
-    border-radius: 34px !important;
-    background:
-      radial-gradient(circle at 10% 25%, rgba(216,189,120,0.22), transparent 26%),
-      linear-gradient(135deg, #052A24 0%, #0B453A 52%, #062B25 100%) !important;
-    box-shadow: 0 32px 70px rgba(6,43,37,0.18) !important;
-}
-
-.brand-mark {
-    width: 64px;
-    height: 64px;
-    border-radius: 24px;
-    display:grid;
-    place-items:center;
-    position:relative;
-    color:#F6E7BE;
-    background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.025));
-    border:1px solid rgba(216,189,120,0.46);
-    box-shadow: inset 0 0 30px rgba(216,189,120,0.10), 0 16px 32px rgba(0,0,0,0.10);
-}
-.brand-crescent { font-size: 34px; transform: translateY(-1px); }
-.brand-spark {
-    position:absolute;
-    top:11px;
-    right:13px;
-    font-size:11px;
-    color:#D8BD78;
-}
-.header-status {
-    min-width: 98px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    padding:8px 12px;
-    border-radius:999px;
-    color:#FFF8E8;
-    font-size:11px;
-    font-weight:900;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(216,189,120,0.22);
-}
-.status-dot {
-    width:8px;height:8px;border-radius:50%;
-    background:#20C784;
-    box-shadow:0 0 0 6px rgba(32,199,132,0.12);
-}
-.header-logo-box { display:none !important; }
-
-.nav-caption {
-    margin: -2px auto 10px auto !important;
-    padding: 6px 16px !important;
-    background: rgba(255,255,255,0.66) !important;
-    color: rgba(6,43,37,0.70) !important;
-    box-shadow: 0 12px 24px rgba(8,46,40,0.04);
-}
-
-.premium-landing {
-    min-height: 285px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    isolation:isolate;
-}
-.premium-landing::before {
-    content:"";
-    position:absolute;
-    inset:18px;
-    border-radius:26px;
-    border:1px solid rgba(199,163,90,0.13);
-    pointer-events:none;
-}
-.hero-visual-ring {
-    position:absolute;
-    left:42px;
-    top:50%;
-    width:150px;
-    height:150px;
-    transform:translateY(-50%);
-    border-radius:50%;
-    border:1px solid rgba(199,163,90,0.28);
-    box-shadow: inset 0 0 0 24px rgba(15,110,82,0.035), 0 0 45px rgba(15,110,82,0.08);
-    opacity:0.9;
-}
-.hero-visual-ring::before,
-.hero-visual-ring::after {
-    content:"";
-    position:absolute;
-    border-radius:50%;
-    inset:26px;
-    border:1px dashed rgba(6,43,37,0.18);
-}
-.hero-visual-ring::after {
-    inset:56px;
-    background:rgba(199,163,90,0.16);
-    border:none;
-}
-
-.feature-card, .metric-card, .reco-box, .section-box, .form-shell, .best-card {
-    backdrop-filter: blur(18px) saturate(128%) !important;
-}
-.feature-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,248,232,0.62)) !important;
-}
-.feature-card::before {
-    content:"";
-    position:absolute;
-    top:0;right:0;left:0;height:4px;
-    background:linear-gradient(90deg, #C7A35A, rgba(15,110,82,0.55), transparent);
-}
-
-.crowding-hero {
-    background:
-      radial-gradient(circle at 14% 15%, rgba(216,189,120,0.20), transparent 27%),
-      linear-gradient(135deg, #052A24 0%, #0C473D 54%, #062B25 100%) !important;
-}
-.crowding-level-text {
-    font-size: 76px !important;
-    text-shadow: 0 0 34px rgba(255,255,255,0.10);
-    letter-spacing: -1.3px !important;
-}
-.hero-orb {
-    position:absolute;
-    border-radius:50%;
-    pointer-events:none;
-}
-.hero-orb-1 {
-    width:170px;height:170px;
-    right:-55px;top:-55px;
-    background:rgba(216,189,120,0.11);
-    border:1px solid rgba(216,189,120,0.12);
-}
-.hero-orb-2 {
-    width:118px;height:118px;
-    left:34px;bottom:-55px;
-    background:rgba(255,255,255,0.055);
-    border:1px solid rgba(255,255,255,0.08);
-}
-
-.metric-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,250,238,0.65)) !important;
-    box-shadow: 0 22px 44px rgba(8,46,40,0.07) !important;
-}
-.metric-value { font-size: 27px !important; }
-
-.suggest-box {
-    background:
-      radial-gradient(circle at 16% 20%, rgba(216,189,120,0.18), transparent 30%),
-      linear-gradient(180deg, rgba(6,43,37,0.99), rgba(16,75,64,0.96)) !important;
-}
-
-.js-plotly-plot .plotly .modebar { display:none !important; }
-
-@media (max-width: 900px) {
-    .header-status { display:none; }
-    .brand-mark { width:52px;height:52px;border-radius:18px; }
-    .crowding-level-text { font-size: 48px !important; }
-    .hero-visual-ring { display:none; }
-}
-</style>
-""")
-
-
 def show_header():
     H("""
-    <div class="main-header premium-header">
-        <div class="brand-mark">
-            <div class="brand-crescent">☾</div>
-            <div class="brand-spark">✦</div>
-        </div>
+    <div class="main-header">
+        <div class="header-logo-box">◇</div>
         <div style="flex:1;">
             <div class="header-main-title">نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين</div>
             <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
             <div class="header-decor"></div>
-        </div>
-        <div class="header-status">
-            <span class="status-dot"></span>
-            منصة تنبؤ
         </div>
     </div>
     """)
 
 
 def render_nav():
-    H('<div class="nav-caption">واجهة تنفيذية لعرض التوقعات والتوصيات</div>')
+    H('<div class="nav-caption">التنقل بين أقسام النظام</div>')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
@@ -1514,13 +1324,13 @@ def home_page():
     render_nav()
 
     H("""
-    <div class="hero-box premium-landing">
-        <div class="hero-visual-ring"></div>
-        <div class="hero-kicker">منصة تنبؤ وتوصية</div>
-        <div class="hero-title">قراءة مستقبلية للازدحام قبل الوصول</div>
-        <div class="hero-sub">اختيار أذكى لوقت أداء العمرة بناءً على توقعات الأيام القادمة</div>
+    <div class="hero-box">
+        <div class="hero-kicker">نظام تنبؤ وتوصية</div>
+        <div class="hero-title">توقع الازدحام قبل الوصول</div>
+        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت أداء العمرة الأنسب</div>
         <div class="hero-text">
-            يعرض النظام مستوى الازدحام المتوقع، العدد التقريبي للمعتمرين، والتوصية النهائية بطريقة واضحة تساعد المستخدم على اتخاذ قرار أفضل.
+            يعرض النظام العدد المتوقع للمعتمرين، ومستوى الازدحام، والتوصية المناسبة بناءً على التنبؤات اليومية
+            والمقارنة بين الأيام القريبة في المسجد الحرام.
         </div>
     </div>
     """)
@@ -1528,9 +1338,9 @@ def home_page():
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("01", "مؤشر ازدحام", "عرض مستوى اليوم المختار بشكل واضح وفوري."),
-        ("02", "توقع عددي", "تقدير العدد المتوقع للمعتمرين في اليوم المحدد."),
-        ("03", "توصية ذكية", "اقتراح يوم بديل أقل ازدحامًا عند الحاجة."),
+        ("01", "تنبؤ يومي", "تقدير العدد المتوقع للمعتمرين."),
+        ("02", "تصنيف الازدحام", "تحويل التوقعات إلى مستويات واضحة."),
+        ("03", "توصية عملية", "اقتراح يوم بديل عند ارتفاع الازدحام."),
     ]
 
     for col, (icon, title, desc) in zip([c1, c2, c3], cards):
@@ -1695,7 +1505,7 @@ def dashboard_page():
     with side_col:
         s1, s2 = st.columns(2)
         with s1:
-            top_card("العدد المتوقع", format_number(prediction), "معتمر", "")
+            top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "", crowd_level)
         with s2:
             top_card("اليوم المختار", weekday, hijri_date, "")
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
