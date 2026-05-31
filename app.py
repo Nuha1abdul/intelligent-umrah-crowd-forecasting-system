@@ -660,6 +660,9 @@ def main_prediction_card(value, level, day_name, hijri_date):
     color = LEVEL_COLORS.get(level, "#0F6E52")
     H(f"""
     <div class="main-kpi-card crowding-hero refined-kpi" style="--level-color:{color};">
+        <div class="kpi-soft-pattern"></div>
+        <div class="kpi-gold-arc"></div>
+        <div class="kpi-light-point"></div>
         <div class="main-kpi-kicker">التوصية الذكية</div>
         <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
         <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
@@ -1936,6 +1939,229 @@ H("""
     }
     .refined-kpi .crowding-level-text {
         font-size: 52px !important;
+    }
+}
+</style>
+""")
+
+
+H("""
+<style>
+/* Final visual match for the top dashboard result area */
+.block-container {
+    max-width: 1280px !important;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    align-items: stretch !important;
+}
+
+/* Make the three summary cards closer to the reference layout */
+.vertical-metric-card {
+    min-height: 118px !important;
+    height: 118px !important;
+    border-radius: 18px !important;
+    padding: 18px 24px !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,249,235,0.82)) !important;
+    border: 1px solid rgba(199,163,90,0.26) !important;
+    box-shadow: 0 14px 28px rgba(92,70,24,0.08), inset 0 -4px 0 rgba(199,163,90,0.34) !important;
+}
+
+.metric-icon-badge {
+    width: 62px !important;
+    height: 62px !important;
+    min-width: 62px !important;
+    color: #B88934 !important;
+    font-size: 25px !important;
+    background: radial-gradient(circle, rgba(255,255,255,0.98), rgba(255,248,230,0.82)) !important;
+    border: 1px solid rgba(199,163,90,0.22) !important;
+    box-shadow: 0 10px 22px rgba(199,163,90,0.12), inset 0 0 18px rgba(199,163,90,0.06) !important;
+}
+
+.vertical-metric-card .metric-label {
+    color: #5F6863 !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    margin-bottom: 4px !important;
+}
+
+.vertical-metric-card .metric-value {
+    color: #073B32 !important;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    margin-top: 0 !important;
+    line-height: 1.18 !important;
+}
+
+.vertical-metric-card .metric-subtitle {
+    color: #5F6863 !important;
+    font-size: 11.5px !important;
+    font-weight: 900 !important;
+    margin-top: 5px !important;
+}
+
+/* Main green recommendation card: same composition as the reference */
+.refined-kpi {
+    min-height: 404px !important;
+    height: 404px !important;
+    border-radius: 24px !important;
+    padding: 54px 46px 44px 46px !important;
+    overflow: hidden !important;
+    background:
+      radial-gradient(circle at 20% 26%, rgba(255,255,255,0.10), transparent 24%),
+      radial-gradient(circle at 82% 72%, rgba(0,0,0,0.10), transparent 32%),
+      linear-gradient(135deg, #04382F 0%, #075447 44%, #042F29 100%) !important;
+    border: 1px solid rgba(199,163,90,0.38) !important;
+    box-shadow: 0 18px 36px rgba(6,43,37,0.16), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+
+.refined-kpi::before,
+.refined-kpi::after {
+    display: none !important;
+}
+
+.kpi-soft-pattern {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 31%;
+    height: 100%;
+    opacity: 0.12;
+    background-image:
+      linear-gradient(30deg, rgba(216,189,120,0.55) 12%, transparent 12.5%, transparent 87%, rgba(216,189,120,0.55) 87.5%, rgba(216,189,120,0.55)),
+      linear-gradient(150deg, rgba(216,189,120,0.55) 12%, transparent 12.5%, transparent 87%, rgba(216,189,120,0.55) 87.5%, rgba(216,189,120,0.55));
+    background-size: 42px 72px;
+    pointer-events: none;
+}
+
+.kpi-gold-arc {
+    position: absolute;
+    right: -56px;
+    bottom: -94px;
+    width: 360px;
+    height: 210px;
+    border-radius: 50%;
+    border-top: 2px solid rgba(216,189,120,0.62);
+    transform: rotate(-17deg);
+    pointer-events: none;
+}
+
+.kpi-gold-arc::before,
+.kpi-gold-arc::after {
+    content: "";
+    position: absolute;
+    inset: 18px 0 auto 0;
+    height: 150px;
+    border-radius: 50%;
+    border-top: 1px solid rgba(216,189,120,0.42);
+}
+
+.kpi-gold-arc::after {
+    inset: 38px 0 auto 0;
+    border-top-color: rgba(216,189,120,0.28);
+}
+
+.kpi-light-point {
+    position: absolute;
+    right: 92px;
+    bottom: 88px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #F6E0A2;
+    box-shadow: 0 0 16px 5px rgba(246,224,162,0.78);
+    pointer-events: none;
+}
+
+.refined-kpi .main-kpi-kicker {
+    margin-bottom: 28px !important;
+    padding: 10px 26px !important;
+    border-radius: 999px !important;
+    color: #EAD49A !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.refined-kpi .crowding-level-text {
+    font-size: 90px !important;
+    line-height: 0.95 !important;
+    margin: 0 0 24px 0 !important;
+    letter-spacing: -1.2px !important;
+    text-shadow: 0 18px 38px rgba(0,0,0,0.16) !important;
+}
+
+.refined-kpi .main-kpi-label {
+    color: #E0C576 !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    margin: 0 !important;
+}
+
+/* Recommendation box under it */
+.reco-box {
+    margin-top: 2px !important;
+    padding: 24px 26px 28px 26px !important;
+    border-radius: 20px !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,250,240,0.80)) !important;
+    border: 1px solid rgba(199,163,90,0.30) !important;
+    box-shadow: 0 16px 34px rgba(92,70,24,0.07) !important;
+}
+
+.reco-box::before {
+    width: 3px !important;
+    opacity: 0.80 !important;
+}
+
+.reco-label {
+    font-size: 12px !important;
+    color: #625848 !important;
+}
+
+.reco-title {
+    font-size: 30px !important;
+    margin-top: 8px !important;
+}
+
+.reco-line {
+    width: 180px !important;
+    margin: 10px auto 13px auto !important;
+}
+
+.reco-line::after {
+    content: "◆";
+    position: relative;
+    top: -10px;
+    display: block;
+    color: #C7A35A;
+    font-size: 12px;
+    text-align: center;
+}
+
+.reco-text {
+    font-size: 14px !important;
+    line-height: 1.9 !important;
+}
+
+/* Slightly reduce the vertical gap under nav for this exact screen */
+.nav-caption + div,
+div[data-testid="stHorizontalBlock"] + div {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 900px) {
+    .refined-kpi {
+        height: auto !important;
+        min-height: 260px !important;
+        padding: 34px 24px !important;
+    }
+    .refined-kpi .crowding-level-text {
+        font-size: 54px !important;
+    }
+    .vertical-metric-card {
+        height: auto !important;
+        min-height: 96px !important;
     }
 }
 </style>
