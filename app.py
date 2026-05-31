@@ -1,4 +1,3 @@
-%%writefile app.py
 from pathlib import Path
 import html
 import joblib
