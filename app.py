@@ -561,30 +561,30 @@ def build_chart(df7, selected_month=None, selected_day=None):
         fig.add_trace(go.Scatter(
             x=selected_point["x_label"],
             y=selected_point["Prediction"],
-            mode="markers+text",
+            mode="markers",
             marker=dict(
-                size=28,
-                color="#FFFFFF",
-                line=dict(color="#C7A35A", width=5),
-                symbol="circle"
+                size=48,
+                color="rgba(199,163,90,0.18)",
+                line=dict(color="rgba(199,163,90,0.24)", width=2)
             ),
-            text=["اليوم المختار"],
-            textposition="bottom center",
-            textfont=dict(size=12, color="#082E28"),
-            hovertemplate="<b>اليوم المختار</b><br>%{x}<br>العدد المتوقع: %{y:,.0f}<extra></extra>",
-            name="اليوم المختار",
+            hoverinfo="skip",
             showlegend=False
         ))
         fig.add_trace(go.Scatter(
             x=selected_point["x_label"],
             y=selected_point["Prediction"],
-            mode="markers",
+            mode="markers+text",
             marker=dict(
-                size=42,
-                color="rgba(199,163,90,0.22)",
-                line=dict(color="rgba(199,163,90,0.25)", width=2)
+                size=25,
+                color="#FFF8E8",
+                line=dict(color="#C7A35A", width=5),
+                symbol="circle"
             ),
-            hoverinfo="skip",
+            text=["اليوم المختار"],
+            textposition="bottom center",
+            textfont=dict(size=12, color="#062B25"),
+            hovertemplate="<b>اليوم المختار</b><br>%{x}<br>العدد المتوقع: %{y:,.0f}<extra></extra>",
+            name="اليوم المختار",
             showlegend=False
         ))
 
@@ -616,6 +616,11 @@ def build_chart(df7, selected_month=None, selected_day=None):
             gridcolor="rgba(120,100,60,0.08)",
             tickformat=",",
             title=dict(text="عدد المعتمرين", font=dict(size=11))
+        ),
+        hoverlabel=dict(
+            bgcolor="#062B25",
+            bordercolor="#C7A35A",
+            font=dict(color="#FFF8E8", family="Cairo", size=12)
         )
     )
 
@@ -823,8 +828,8 @@ div[data-testid="stHorizontalBlock"] {
       radial-gradient(circle at 18% 30%, rgba(199,163,90,0.18), transparent 26%);
     border: 1px solid rgba(199,163,90,0.38);
     border-radius: 30px;
-    padding: 22px 30px;
-    min-height: 118px;
+    padding: 20px 28px;
+    min-height: 108px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -841,23 +846,9 @@ div[data-testid="stHorizontalBlock"] {
     pointer-events:none;
 }
 
-.main-header::after {
-    content:"";
-    position:absolute;
-    left:22px;
-    top:22px;
-    width:72px;
-    height:72px;
-    border-radius:22px;
-    border:1px solid rgba(216,189,120,0.36);
-    background:
-      linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-    box-shadow: inset 0 0 28px rgba(216,189,120,0.08);
-}
-
 .header-main-title {
     color: #FFF8E8;
-    font-size: 29px;
+    font-size: 28px;
     font-weight: 900;
     text-align: center;
     letter-spacing:-0.7px;
@@ -879,16 +870,17 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .header-logo-box {
-    width: 58px;
-    height: 58px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(216,189,120,0.42);
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(216,189,120,0.45);
     display: grid;
     place-items: center;
     color:#F6E7BE;
-    font-size: 24px;
+    font-size: 21px;
     font-weight:900;
+    box-shadow: inset 0 0 26px rgba(216,189,120,0.07);
 }
 
 .hero-box {
@@ -1005,9 +997,9 @@ div[data-testid="stHorizontalBlock"] {
     background:
       linear-gradient(135deg, rgba(6,43,37,0.98), rgba(15,110,82,0.94));
     border: 1px solid rgba(216,189,120,0.38);
-    border-radius: 32px;
-    padding: 30px 34px;
-    min-height: 238px;
+    border-radius: 30px;
+    padding: 28px 34px;
+    min-height: 222px;
     text-align: center;
     box-shadow: 0 30px 66px rgba(8,46,40,0.18);
 }
@@ -1072,9 +1064,9 @@ div[data-testid="stHorizontalBlock"] {
     position:relative;
     overflow:hidden;
     border: 1px solid rgba(201,169,95,0.28);
-    border-radius: 24px;
-    padding: 18px 18px;
-    min-height: 136px;
+    border-radius: 22px;
+    padding: 14px 16px;
+    min-height: 112px;
     text-align: right;
     backdrop-filter: blur(14px);
     transition:0.18s ease;
@@ -1092,10 +1084,10 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .metric-value {
-    font-size:30px;
+    font-size:25px;
     font-weight:900;
-    line-height:1.2;
-    margin-top:16px;
+    line-height:1.18;
+    margin-top:12px;
     letter-spacing:-0.5px;
 }
 
@@ -1103,7 +1095,7 @@ div[data-testid="stHorizontalBlock"] {
     color:#6D756F;
     font-size:11px;
     font-weight:800;
-    margin-top:9px;
+    margin-top:6px;
 }
 
 .metric-accent {
@@ -1120,9 +1112,9 @@ div[data-testid="stHorizontalBlock"] {
     overflow:hidden;
     background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.82));
     border: 1px solid rgba(201,169,95,0.34);
-    border-radius: 26px;
-    padding: 20px 26px;
-    box-shadow: 0 22px 48px rgba(8,46,40,0.075);
+    border-radius: 24px;
+    padding: 14px 24px;
+    box-shadow: 0 18px 38px rgba(8,46,40,0.065);
     backdrop-filter: blur(14px);
 }
 
@@ -1135,9 +1127,9 @@ div[data-testid="stHorizontalBlock"] {
 
 .reco-title {
     text-align:center;
-    font-size:26px;
+    font-size:23px;
     font-weight:900;
-    margin-top:5px;
+    margin-top:3px;
     letter-spacing:-0.5px;
 }
 
@@ -1145,15 +1137,15 @@ div[data-testid="stHorizontalBlock"] {
     width:132px;
     height:2px;
     background: linear-gradient(90deg, transparent, #C7A35A, transparent);
-    margin:9px auto 10px auto;
+    margin:7px auto 8px auto;
 }
 
 .reco-text {
     text-align:center;
     color:#31413B;
-    font-size:14px;
+    font-size:13px;
     font-weight:700;
-    line-height:1.95;
+    line-height:1.75;
     max-width:1000px;
     margin:auto;
 }
@@ -1223,7 +1215,7 @@ div[data-testid="stHorizontalBlock"] {
 }
 
 .side-suggest-box {
-    min-height: 216px;
+    min-height: 190px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1351,6 +1343,20 @@ div[data-testid="stHorizontalBlock"] {
     box-shadow:0 12px 28px rgba(8,46,40,0.035);
 }
 
+
+.nav-caption {
+    width: fit-content;
+    margin: -4px auto 8px auto;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.50);
+    border: 1px solid rgba(199,163,90,0.18);
+    color: rgba(8,46,40,0.62);
+    font-size: 10px;
+    font-weight: 900;
+    backdrop-filter: blur(10px);
+}
+
 @media (max-width: 900px) {
     .header-main-title { font-size: 21px; }
     .hero-title { font-size: 26px; }
@@ -1376,6 +1382,7 @@ def show_header():
 
 
 def render_nav():
+    H('<div class="nav-caption">التنقل بين أقسام النظام</div>')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
@@ -1389,7 +1396,7 @@ def render_nav():
         if st.button("لوحة النتائج", use_container_width=True):
             st.session_state.page = "dashboard"
             st.rerun()
-    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
 
 
 if "page" not in st.session_state:
