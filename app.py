@@ -1463,7 +1463,7 @@ def show_header():
         <div class="header-center">
             <div class="header-main-title">المنصة الذكية لتوقع الازدحام</div>
             <div class="header-subtitle">
-                اختيار الوقت الأنسب للعمرة اعتمادًا على<br>
+                اختيار الوقت الأنسب لأداء العمرة بناءً على<br>
                 التوقعات المستقبلية وتحليل مستويات الازدحام
             </div>
             <div class="header-decor"></div>
