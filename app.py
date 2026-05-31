@@ -8,8 +8,8 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="نظام التنبؤ بازدحام المعتمرين",
-    page_icon="🕋",
+    page_title="نظام ذكي للتنبؤ بازدحام المعتمرين",
+    page_icon="◇",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -34,21 +34,21 @@ HIJRI_MONTHS = [
 NATIONALITY_OPTIONS = ["سعودي", "غير سعودي"]
 
 LEVEL_COLORS = {
-    "منخفض": "#159a5c",
-    "متوسط": "#c8921e",
-    "مرتفع": "#d2554a"
+    "منخفض": "#0F8B5F",
+    "متوسط": "#B88318",
+    "مرتفع": "#B94B42"
 }
 
 LEVEL_BG = {
-    "منخفض": "#eef8f1",
-    "متوسط": "#fff8e8",
-    "مرتفع": "#fff1f0"
+    "منخفض": "#ECF7F0",
+    "متوسط": "#FFF6E2",
+    "مرتفع": "#FFF0EE"
 }
 
 LEVEL_BORDER = {
-    "منخفض": "#b9dec6",
-    "متوسط": "#ead29b",
-    "مرتفع": "#e7b7b2"
+    "منخفض": "#BDE3CB",
+    "متوسط": "#E8C77E",
+    "مرتفع": "#E4A7A1"
 }
 
 
@@ -442,7 +442,7 @@ def get_best_day(df7, current_day, current_month):
 def get_decision(level):
     level = normalize_level(level)
     if level == "منخفض":
-        return "مناسب"
+        return "مناسب للزيارة"
     elif level == "مرتفع":
         return "يفضل اختيار يوم آخر"
     else:
@@ -450,8 +450,8 @@ def get_decision(level):
 
 
 def get_reason(decision):
-    if decision == "مناسب":
-        return "الازدحام المتوقع منخفض، لذلك يعتبر اليوم مناسبًا لأداء العمرة."
+    if decision == "مناسب للزيارة":
+        return "من المتوقع أن يكون مستوى الازدحام منخفضًا مقارنة بالأيام القريبة، لذلك يعد هذا اليوم خيارًا مناسبًا لأداء العمرة."
     if decision == "يفضل اختيار يوم آخر":
         return "الازدحام المتوقع مرتفع مقارنةً بالأيام القريبة، لذلك يفضل اختيار يوم أقل ازدحامًا."
     return "الازدحام المتوقع ضمن المستوى المتوسط، لذلك يمكن أداء العمرة مع الحذر واختيار الوقت المناسب."
@@ -543,7 +543,7 @@ def build_chart(df7):
                 lambda x: f"{int(round(float(x))):,}" if not pd.isna(x) else ""
             ),
             textposition="top center",
-            textfont=dict(size=12, color="#064b3b"),
+            textfont=dict(size=12, color="#082E28"),
             hovertemplate="<b>%{x}</b><br>المعتمرون المتوقعون: %{y:,.0f}<extra></extra>",
             name=level
         ))
@@ -558,8 +558,8 @@ def build_chart(df7):
         height=360,
         margin=dict(l=15, r=15, t=15, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,253,247,0.94)",
-        font=dict(family="Cairo", size=12, color="#064b3b"),
+        plot_bgcolor="rgba(255,255,255,0.72)",
+        font=dict(family="Cairo", size=12, color="#082E28"),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -575,7 +575,7 @@ def build_chart(df7):
             showgrid=True,
             gridcolor="rgba(120,100,60,0.10)",
             tickformat=",",
-            title=dict(text="عدد المعتمرين", font=dict(size=11))
+            title=dict(text="العدد المتوقع للمعتمرين", font=dict(size=11))
         )
     )
 
@@ -584,45 +584,43 @@ def build_chart(df7):
 
 def top_card(title, value, subtitle, icon, level=None):
     if level is None:
-        color = "#064b3b"
-        bg = "rgba(255,255,255,0.90)"
-        border = "#e5d4aa"
-        badge_bg = "#eef3ea"
-        badge_text = "#0a6b52"
-        shadow = "rgba(105,84,35,0.04)"
+        color = "#123F35"
+        bg = "rgba(255,255,255,0.88)"
+        border = "rgba(201,169,95,0.34)"
+        accent = "#C7A35A"
+        shadow = "rgba(18,63,53,0.055)"
     else:
         level = normalize_level(level)
-        color = LEVEL_COLORS.get(level, "#064b3b")
-        bg = LEVEL_BG.get(level, "#eef8f1")
-        border = LEVEL_BORDER.get(level, "#b9dec6")
-        badge_bg = bg
-        badge_text = color
-        shadow = hex_to_rgba(color, 0.20)
+        color = LEVEL_COLORS.get(level, "#123F35")
+        bg = LEVEL_BG.get(level, "rgba(255,255,255,0.88)")
+        border = LEVEL_BORDER.get(level, "rgba(201,169,95,0.34)")
+        accent = color
+        shadow = hex_to_rgba(color, 0.16)
 
     H(f"""
-    <div class="top-card" style="background:{bg}; border-color:{border}; box-shadow:0 8px 18px {shadow};">
-        <div class="top-icon">{esc(icon)}</div>
-        <div class="top-title">{esc(title)}</div>
-        <div class="top-value" style="color:{color};">{esc(value)}</div>
-        <div class="top-badge" style="background:{badge_bg}; color:{badge_text}; box-shadow:0 5px 12px {shadow};">{esc(subtitle)}</div>
+    <div class="metric-card" style="background:{bg}; border-color:{border}; box-shadow:0 18px 35px {shadow};">
+        <div class="metric-top">
+            <span class="metric-tag" style="color:{accent}; border-color:{border};">{esc(icon)}</span>
+            <span class="metric-label">{esc(title)}</span>
+        </div>
+        <div class="metric-value" style="color:{color};">{esc(value)}</div>
+        <div class="metric-subtitle">{esc(subtitle)}</div>
     </div>
     """)
 
-
-def info_pill(text, icon="👥"):
+def info_pill(text, icon=""):
     H(f"""
-    <div class="small-pill">
-        <span class="pill-icon">{esc(icon)}</span>
+    <div class="insight-pill">
+        <span class="insight-icon">{esc(icon)}</span>
         <span>{esc(text)}</span>
     </div>
     """)
 
-
 def best_day_card(row):
     if row is None:
         H("""
-        <div class="best-inline-card">
-            <div class="best-inline-head">لا يوجد يوم مقترح ضمن الأيام السبعة</div>
+        <div class="best-card">
+            <div class="best-title">لا يوجد يوم بديل ضمن الأيام السبعة القريبة</div>
         </div>
         """)
         return
@@ -632,23 +630,36 @@ def best_day_card(row):
     visitors = format_number(row.get("Prediction", 0))
 
     H(f"""
-    <div class="best-inline-card">
-        <div class="best-inline-head">
-            <span class="best-check">✅</span>
-            <span>اليوم الأفضل المقترح: <strong>{day_name}</strong></span>
-        </div>
-        <div class="best-inline-meta">
+    <div class="best-card">
+        <div class="best-kicker">اليوم الأنسب للزيارة</div>
+        <div class="best-title">{day_name}</div>
+        <div class="best-meta">
             <span>التاريخ الهجري: <strong>{hijri_date}</strong></span>
-            <span class="best-dot">•</span>
-            <span>المعتمرون المتوقعون: <strong>{visitors}</strong></span>
+            <span>العدد المتوقع: <strong>{visitors}</strong></span>
         </div>
+        <div class="best-note">تم اختياره لأنه الأقل ازدحامًا ضمن الأيام السبعة القريبة.</div>
     </div>
     """)
 
-
 H("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --green-950:#082E28;
+    --green-900:#0D3B33;
+    --green-800:#124B40;
+    --green-700:#0F6E52;
+    --green-600:#0F8B5F;
+    --gold-700:#B88318;
+    --gold-500:#C7A35A;
+    --gold-200:#EFE1B8;
+    --cream-50:#FCFAF4;
+    --cream-100:#F6F0E4;
+    --ink:#14201D;
+    --muted:#6D756F;
+    --line:rgba(201,169,95,0.30);
+}
 
 html, body, [class*="css"] {
     font-family: 'Cairo', sans-serif !important;
@@ -657,9 +668,10 @@ html, body, [class*="css"] {
 
 .stApp {
     background:
-      radial-gradient(circle at 8% 12%, rgba(212,177,97,0.07), transparent 18%),
-      radial-gradient(circle at 92% 10%, rgba(7,86,68,0.06), transparent 18%),
-      linear-gradient(180deg, #fbf8f1 0%, #f5eee1 100%);
+      radial-gradient(circle at 12% 9%, rgba(199,163,90,0.14), transparent 24%),
+      radial-gradient(circle at 88% 8%, rgba(15,110,82,0.12), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(15,110,82,0.06), transparent 30%),
+      linear-gradient(180deg, #FBFAF5 0%, #F4EFE5 100%);
 }
 
 #MainMenu, footer, header {
@@ -667,52 +679,65 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    max-width: 1260px !important;
-    padding-top: 0.45rem !important;
-    padding-bottom: 1rem !important;
+    max-width: 1280px !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 1.4rem !important;
 }
 
 section[data-testid="stSidebar"] {
-    width: 190px !important;
-    min-width: 190px !important;
-    max-width: 190px !important;
+    width: 205px !important;
+    min-width: 205px !important;
+    max-width: 205px !important;
     background:
-      radial-gradient(circle at 50% 10%, rgba(212,177,97,0.10), transparent 24%),
-      linear-gradient(180deg, #fbf8f1 0%, #f3ecdd 100%) !important;
-    border-left: 1px solid #e2cf9d !important;
-    box-shadow: -4px 0 18px rgba(105,84,35,0.05);
+      linear-gradient(180deg, #092F29 0%, #0B3C34 52%, #082C27 100%) !important;
+    border-left: 1px solid rgba(199,163,90,0.38) !important;
+    box-shadow: -14px 0 38px rgba(8,46,40,0.12);
 }
 
 section[data-testid="stSidebar"] > div {
-    width: 190px !important;
-    min-width: 190px !important;
-    max-width: 190px !important;
-    padding-top: 0.9rem !important;
+    width: 205px !important;
+    min-width: 205px !important;
+    max-width: 205px !important;
+    padding-top: 1.1rem !important;
 }
 
 .sidebar-wrap {
     text-align:center;
-    padding: 18px 8px 14px 8px;
+    padding: 20px 10px 12px 10px;
+}
+
+.sidebar-mark {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px auto;
+    border-radius: 16px;
+    display:grid;
+    place-items:center;
+    color:#F6E7BE;
+    border:1px solid rgba(246,231,190,0.34);
+    background:rgba(255,255,255,0.055);
+    font-size: 18px;
+    font-weight:900;
 }
 
 .sidebar-title {
-    color:#064b3b;
-    font-size: 16px;
+    color:#FFF8E8;
+    font-size: 15px;
     font-weight: 900;
-    margin-top: 4px;
+    letter-spacing:-0.2px;
 }
 
 .sidebar-sub {
-    color:#9b6b16;
-    font-size: 9px;
+    color:#D8BD78;
+    font-size: 10px;
     font-weight:700;
-    margin-top: 5px;
+    margin-top: 6px;
 }
 
 .sidebar-line {
     height:1px;
-    background: linear-gradient(90deg, transparent, #d6bd7f, transparent);
-    margin: 14px 24px 18px 24px;
+    background: linear-gradient(90deg, transparent, rgba(216,189,120,0.7), transparent);
+    margin: 18px 20px 22px 20px;
 }
 
 section[data-testid="stSidebar"] .stButton {
@@ -721,412 +746,510 @@ section[data-testid="stSidebar"] .stButton {
 }
 
 section[data-testid="stSidebar"] .stButton button {
-    width: fit-content !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding: 0 4px !important;
-    background: transparent !important;
-    color: #064b3b !important;
-    border: none !important;
-    text-align: right !important;
+    width: 165px !important;
+    padding: 0 14px !important;
+    background: rgba(255,255,255,0.055) !important;
+    color: #F7F1E3 !important;
+    border: 1px solid rgba(246,231,190,0.12) !important;
+    text-align: center !important;
     font-weight: 800 !important;
-    font-size: 13px !important;
-    border-radius: 0 !important;
-    height: 34px !important;
-    margin-bottom: 14px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    font-size: 12px !important;
+    border-radius: 14px !important;
+    height: 38px !important;
+    margin-bottom: 12px !important;
     box-shadow: none !important;
+    transition: 0.2s ease;
 }
 
 section[data-testid="stSidebar"] .stButton button:hover {
-    background: transparent !important;
-    color: #9b6b16 !important;
-    border: none !important;
-    text-decoration: underline;
+    background: rgba(199,163,90,0.20) !important;
+    border-color: rgba(246,231,190,0.30) !important;
+    color: #FFF8E8 !important;
 }
 
 .stButton button {
-    background: linear-gradient(135deg, #0a6b52, #064b3b) !important;
+    background: linear-gradient(135deg, #0F6E52, #082E28) !important;
     color: white !important;
-    border: none !important;
+    border: 1px solid rgba(199,163,90,0.24) !important;
     outline: none !important;
-    box-shadow: none !important;
-    border-radius: 14px !important;
-    height: 40px !important;
-    font-weight: 800 !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.15) !important;
+    border-radius: 16px !important;
+    height: 44px !important;
+    font-weight: 900 !important;
     font-size: 13px !important;
+}
+
+.stButton button:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
 }
 
 .stButton button:focus,
 .stButton button:active {
-    border: none !important;
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.15) !important;
 }
 
 .main-header {
-    background: linear-gradient(90deg, rgba(255,255,255,0.93), rgba(255,250,241,0.96));
-    border: 1px solid #e5d4aa;
-    border-radius: 20px;
-    padding: 12px 22px;
-    min-height: 84px;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, rgba(8,46,40,0.98), rgba(18,75,64,0.96)),
+      radial-gradient(circle at 18% 30%, rgba(199,163,90,0.18), transparent 22%);
+    border: 1px solid rgba(199,163,90,0.35);
+    border-radius: 26px;
+    padding: 18px 26px;
+    min-height: 104px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 7px 16px rgba(105,84,35,0.04);
-    margin-bottom: 10px;
+    box-shadow: 0 22px 48px rgba(8,46,40,0.14);
+    margin-bottom: 16px;
+}
+
+.main-header::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.05) 45%, transparent 70%);
+    pointer-events:none;
 }
 
 .header-main-title {
-    color: #064b3b;
-    font-size: 22px;
-    font-weight: 800;
+    color: #FFF8E8;
+    font-size: 24px;
+    font-weight: 900;
     text-align: center;
+    letter-spacing:-0.4px;
 }
 
 .header-subtitle {
-    color: #c08a19;
-    font-size: 11px;
+    color: #D8BD78;
+    font-size: 12px;
     font-weight: 800;
     text-align: center;
-    margin-top: 4px;
+    margin-top: 7px;
 }
 
 .header-decor {
-    width: 220px;
+    width: 250px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #d3a33c, transparent);
-    margin: 6px auto 0 auto;
+    background: linear-gradient(90deg, transparent, #D8BD78, transparent);
+    margin: 10px auto 0 auto;
 }
 
 .header-logo-box {
-    width: 50px;
-    height: 50px;
-    border-radius: 16px;
-    background: #f8ebcd;
-    border: 1px solid #dfc98f;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(216,189,120,0.45);
     display: grid;
     place-items: center;
-    font-size: 24px;
+    color:#F6E7BE;
+    font-size: 20px;
+    font-weight:900;
 }
 
 .hero-box {
-    background: rgba(255,255,255,0.82);
-    border: 1px solid #e5d4aa;
-    border-radius: 20px;
-    padding: 24px;
+    position:relative;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.86));
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: 34px 34px;
     text-align:center;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 24px 55px rgba(8,46,40,0.07);
 }
 
-.hero-icon {
-    font-size:34px;
+.hero-box::after {
+    content:"";
+    position:absolute;
+    width:250px;
+    height:250px;
+    border-radius:50%;
+    background:rgba(15,110,82,0.055);
+    left:-90px;
+    bottom:-120px;
+}
+
+.hero-kicker {
+    width:fit-content;
+    margin:0 auto 12px auto;
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(15,110,82,0.075);
+    color:#0F6E52;
+    border:1px solid rgba(15,110,82,0.12);
+    font-size:12px;
+    font-weight:900;
 }
 
 .hero-title {
-    color:#064b3b;
-    font-size:22px;
+    color:#082E28;
+    font-size:30px;
     font-weight:900;
-    margin-top:8px;
+    letter-spacing:-0.8px;
 }
 
 .hero-sub {
-    color:#be8919;
-    font-size:12px;
-    font-weight:800;
-    margin-top:6px;
-}
-
-.hero-text {
-    color:#51442a;
-    font-size:13px;
-    font-weight:700;
-    margin-top:10px;
-    line-height:1.8;
-}
-
-.feature-card {
-    background: rgba(255,255,255,0.76);
-    border: 1px solid rgba(180,155,96,0.28);
-    border-radius: 16px;
-    padding: 18px 12px;
-    text-align:center;
-    box-shadow: 0 4px 10px rgba(105,84,35,0.03);
-    min-height: 120px;
-}
-
-.feature-icon {
-    font-size:24px;
-}
-
-.feature-title {
-    color:#064b3b;
+    color:#B88318;
+    font-size:14px;
     font-weight:900;
-    font-size:15px;
     margin-top:8px;
 }
 
-.feature-desc {
-    color:#705f39;
+.hero-text {
+    color:#4E5B55;
+    font-size:14px;
     font-weight:700;
-    font-size:12px;
-    margin-top:6px;
+    margin:14px auto 0 auto;
+    line-height:1.9;
+    max-width:760px;
 }
 
-.top-card {
-    background: rgba(255,255,255,0.90);
-    border: 1px solid #e5d4aa;
-    border-radius: 18px;
-    padding: 12px 12px;
-    min-height: 112px;
-    text-align: center;
+.feature-card {
+    position:relative;
+    overflow:hidden;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(201,169,95,0.26);
+    border-radius: 22px;
+    padding: 22px 18px;
+    text-align:right;
+    box-shadow: 0 18px 38px rgba(8,46,40,0.055);
+    min-height: 132px;
 }
 
-.top-icon {
-    width: 42px;
-    height: 42px;
-    margin: 0 auto 5px auto;
-    border-radius: 14px;
+.feature-icon {
+    width:36px;
+    height:36px;
+    border-radius:14px;
     display:grid;
     place-items:center;
-    font-size:18px;
-    background:#f6f2e9;
-    border:1px solid #ead9b2;
+    background:rgba(8,46,40,0.06);
+    border:1px solid rgba(199,163,90,0.28);
+    color:#B88318;
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:10px;
 }
 
-.top-title {
-    color:#3d2f16;
+.feature-title {
+    color:#082E28;
+    font-weight:900;
+    font-size:16px;
+}
+
+.feature-desc {
+    color:#64706B;
+    font-weight:700;
+    font-size:12px;
+    margin-top:8px;
+    line-height:1.7;
+}
+
+.metric-card {
+    border: 1px solid rgba(201,169,95,0.34);
+    border-radius: 24px;
+    padding: 18px 18px;
+    min-height: 134px;
+    text-align: right;
+    transition:0.18s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.metric-top {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.metric-tag {
+    min-width:34px;
+    height:28px;
+    border-radius:999px;
+    border:1px solid;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:900;
+    padding:0 10px;
+    background:rgba(255,255,255,0.58);
+}
+
+.metric-label {
+    color:#6D756F;
+    font-size:12px;
+    font-weight:900;
+}
+
+.metric-value {
+    font-size:28px;
+    font-weight:900;
+    line-height:1.25;
+    margin-top:14px;
+    letter-spacing:-0.4px;
+}
+
+.metric-subtitle {
+    color:#6D756F;
     font-size:11px;
     font-weight:800;
-    margin-top:3px;
-}
-
-.top-value {
-    font-size:21px;
-    font-weight:800;
-    line-height:1.2;
-    margin-top:5px;
-}
-
-.top-badge {
-    width:fit-content;
-    margin: 6px auto 0 auto;
-    padding:4px 10px;
-    border-radius:999px;
-    font-size:10px;
-    font-weight:800;
+    margin-top:8px;
 }
 
 .reco-box {
-    background: rgba(255,255,255,0.78);
-    border: 1px solid #e3d0a0;
-    border-radius: 18px;
-    padding: 12px 16px;
-    box-shadow: 0 5px 12px rgba(105,84,35,0.03);
+    position:relative;
+    overflow:hidden;
+    background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,251,242,0.86));
+    border: 1px solid rgba(201,169,95,0.34);
+    border-radius: 24px;
+    padding: 18px 24px;
+    box-shadow: 0 18px 42px rgba(8,46,40,0.07);
 }
 
 .reco-label {
     text-align:center;
-    color:#5a4b2d;
-    font-size:10px;
-    font-weight:800;
+    color:#7A6D50;
+    font-size:11px;
+    font-weight:900;
 }
 
 .reco-title {
     text-align:center;
-    font-size:18px;
-    font-weight:800;
-    margin-top:2px;
+    font-size:24px;
+    font-weight:900;
+    margin-top:4px;
+    letter-spacing:-0.4px;
 }
 
 .reco-line {
-    width:100px;
+    width:120px;
     height:2px;
-    background: linear-gradient(90deg, transparent, #d0a347, transparent);
-    margin:5px auto 6px auto;
+    background: linear-gradient(90deg, transparent, #C7A35A, transparent);
+    margin:8px auto 9px auto;
 }
 
 .reco-text {
     text-align:center;
-    color:#372f20;
-    font-size:13px;
+    color:#31413B;
+    font-size:14px;
     font-weight:700;
-    line-height:1.75;
-    max-width:920px;
+    line-height:1.9;
+    max-width:960px;
     margin:auto;
 }
 
-.small-pill {
-    background: rgba(255,250,242,0.92);
-    border: 1px solid #e7d7af;
-    color:#84621c;
+.insight-pill {
+    background: rgba(255,255,255,0.86);
+    border: 1px solid rgba(201,169,95,0.32);
+    color:#5D5138;
     border-radius: 999px;
-    padding: 5px 11px;
-    min-height: 28px;
+    padding: 8px 14px;
+    min-height: 34px;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
-    font-size:10px;
-    font-weight:800;
+    gap:8px;
+    font-size:11px;
+    font-weight:900;
+    box-shadow:0 12px 28px rgba(8,46,40,0.05);
 }
 
-.pill-icon {
-    width:22px;
-    height:22px;
-    border-radius:50%;
+.insight-icon {
+    min-width:30px;
+    height:24px;
+    border-radius:999px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    background:#c79a2b;
-    color:white;
-    font-size:11px;
+    background:rgba(15,110,82,0.08);
+    color:#0F6E52;
+    font-size:10px;
+    font-weight:900;
+    padding:0 8px;
 }
 
 .section-box {
-    background: rgba(255,255,255,0.70);
-    border: 1px solid rgba(180,155,96,0.28);
-    border-radius: 16px;
-    padding: 11px 12px;
-    box-shadow: 0 4px 10px rgba(105,84,35,0.03);
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(201,169,95,0.25);
+    border-radius: 22px;
+    padding: 13px 16px;
+    box-shadow: 0 16px 36px rgba(8,46,40,0.05);
     height: 100%;
 }
 
 .section-title {
-    text-align:center;
-    color:#064b3b;
-    font-size:14px;
-    font-weight:800;
+    text-align:right;
+    color:#082E28;
+    font-size:15px;
+    font-weight:900;
 }
 
 .section-line {
-    width:68px;
+    width:86px;
     height:2px;
-    background: linear-gradient(90deg, transparent, #d0a347, transparent);
-    margin: 4px auto 8px auto;
+    background: linear-gradient(90deg, #C7A35A, transparent);
+    margin: 8px 0 8px auto;
 }
 
 .suggest-box {
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(21,154,92,0.20);
-    border-radius: 18px;
-    padding: 18px 16px;
+    background: linear-gradient(180deg, rgba(8,46,40,0.98), rgba(18,75,64,0.97));
+    border: 1px solid rgba(199,163,90,0.32);
+    border-radius: 26px;
+    padding: 24px 20px;
     text-align:center;
-    box-shadow: 0 6px 18px rgba(21,154,92,0.07);
+    box-shadow: 0 20px 45px rgba(8,46,40,0.16);
 }
 
 .side-suggest-box {
-    min-height: 170px;
+    min-height: 192px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-top: 42px;
+    margin-top: 28px;
 }
 
 .suggest-title {
-    color:#064b3b;
-    font-size:19px;
+    color:#FFF8E8;
+    font-size:22px;
     font-weight:900;
     text-align:center;
+    letter-spacing:-0.4px;
 }
 
 .suggest-sub {
-    color:#50422c;
+    color:#D8BD78;
     font-size:12px;
-    font-weight:700;
-    margin-top:6px;
-    line-height:1.8;
+    font-weight:800;
+    margin-top:10px;
+    line-height:1.9;
 }
 
-.best-inline-card {
-    background: linear-gradient(90deg, rgba(231,245,234,0.95), rgba(244,251,245,0.95));
-    border: 1px solid #cfe7d4;
-    border-radius: 16px;
-    padding: 14px 12px;
+.best-card {
+    background: linear-gradient(135deg, rgba(236,247,240,0.98), rgba(255,255,255,0.94));
+    border: 1px solid rgba(15,139,95,0.20);
+    border-radius: 24px;
+    padding: 18px 16px;
     margin-top: 14px;
     text-align: center;
-    box-shadow: 0 8px 18px rgba(21,154,92,0.08);
+    box-shadow: 0 18px 36px rgba(15,139,95,0.09);
 }
 
-.best-inline-head {
-    color: #159a5c;
-    font-size: 17px;
+.best-kicker {
+    width:fit-content;
+    margin:0 auto 8px auto;
+    padding:5px 12px;
+    border-radius:999px;
+    background:rgba(15,139,95,0.08);
+    color:#0F8B5F;
+    font-size:10px;
+    font-weight:900;
+}
+
+.best-title {
+    color: #082E28;
+    font-size: 24px;
     font-weight: 900;
-    line-height: 1.7;
+    line-height: 1.5;
 }
 
-.best-check {
-    font-size: 16px;
-    margin-left: 6px;
-}
-
-.best-inline-meta {
-    margin-top: 6px;
-    color: #4e5a4f;
+.best-meta {
+    margin-top: 8px;
+    color: #53615B;
     font-size: 12px;
-    font-weight: 700;
-    line-height: 1.8;
+    font-weight: 800;
+    line-height: 1.9;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
 }
 
-.best-inline-meta strong {
-    color: #064b3b;
+.best-meta strong {
+    color: #082E28;
     font-weight: 900;
 }
 
-.best-dot {
-    margin: 0 6px;
-    color: #90b29a;
-    font-weight: 900;
+.best-note {
+    margin-top:10px;
+    color:#0F6E52;
+    font-size:11px;
+    font-weight:800;
+    line-height:1.7;
 }
 
 .form-shell {
-    background: rgba(255,255,255,0.82) !important;
-    border:1px solid #e2cf9d !important;
-    border-radius: 20px !important;
-    padding: 22px 28px !important;
-    box-shadow: 0 7px 16px rgba(105,84,35,0.04);
+    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.86)) !important;
+    border:1px solid rgba(201,169,95,0.32) !important;
+    border-radius: 28px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 22px 48px rgba(8,46,40,0.07);
 }
 
 .form-title {
     text-align:center;
-    color:#064b3b;
-    font-size:22px;
-    font-weight:800;
+    color:#082E28;
+    font-size:26px;
+    font-weight:900;
+    letter-spacing:-0.5px;
 }
 
 .form-sub {
     text-align:center;
-    color:#bf8d21;
+    color:#B88318;
     font-size:12px;
-    font-weight:800;
-    margin-top:5px;
+    font-weight:900;
+    margin-top:8px;
 }
 
 .form-line {
-    width:220px;
+    width:260px;
     height:2px;
-    background:linear-gradient(90deg, transparent, #d0a347, transparent);
-    margin:10px auto 17px auto;
+    background:linear-gradient(90deg, transparent, #C7A35A, transparent);
+    margin:13px auto 18px auto;
 }
 
 .form-section {
-    text-align:center;
-    color:#064b3b;
-    font-size:18px;
-    font-weight:800;
-    margin-bottom:16px;
+    width:fit-content;
+    margin: 0 auto 5px auto;
+    color:#0F6E52;
+    background:rgba(15,110,82,0.075);
+    border:1px solid rgba(15,110,82,0.12);
+    border-radius:999px;
+    padding:7px 18px;
+    font-size:13px;
+    font-weight:900;
 }
 
 .stTextInput input, .stSelectbox > div > div {
-    background:#fffdfa !important;
-    border:1px solid #d9c28a !important;
-    border-radius:12px !important;
-    min-height:40px !important;
+    background:#FFFEFA !important;
+    border:1px solid rgba(201,169,95,0.38) !important;
+    border-radius:14px !important;
+    min-height:44px !important;
+    box-shadow:0 10px 24px rgba(8,46,40,0.035);
 }
 
 div[data-testid="stHorizontalBlock"] {
-    gap: 0.7rem !important;
+    gap: 0.85rem !important;
+}
+
+@media (max-width: 900px) {
+    section[data-testid="stSidebar"] {
+        width: 170px !important;
+        min-width: 170px !important;
+        max-width: 170px !important;
+    }
+    .header-main-title { font-size: 19px; }
+    .hero-title { font-size: 24px; }
+    .metric-value { font-size: 23px; }
 }
 </style>
 """)
@@ -1135,15 +1258,14 @@ div[data-testid="stHorizontalBlock"] {
 def show_header():
     H("""
     <div class="main-header">
-        <div class="header-logo-box">🕋</div>
+        <div class="header-logo-box">AI</div>
         <div style="flex:1;">
-            <div class="header-main-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
-            <div class="header-subtitle">المسجد الحرام الشريف</div>
+            <div class="header-main-title">نظام ذكي للتنبؤ بالازدحام وتوصية أوقات الزيارة</div>
+            <div class="header-subtitle">تحليل تنبؤي لمستويات ازدحام المعتمرين في المسجد الحرام</div>
             <div class="header-decor"></div>
         </div>
     </div>
     """)
-
 
 if "page" not in st.session_state:
     st.session_state.page = "home"
@@ -1158,21 +1280,22 @@ if "show_best_day" not in st.session_state:
 with st.sidebar:
     H("""
     <div class="sidebar-wrap">
-        <div class="sidebar-title">التنبؤ</div>
-        <div class="sidebar-sub">بازدحام المعتمرين</div>
+        <div class="sidebar-mark">AI</div>
+        <div class="sidebar-title">منصة التنبؤ</div>
+        <div class="sidebar-sub">ازدحام المعتمرين</div>
         <div class="sidebar-line"></div>
     </div>
     """)
 
-    if st.button("الرئيسية 🏠"):
+    if st.button("الرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    if st.button("إدخال البيانات 📝"):
+    if st.button("إدخال البيانات"):
         st.session_state.page = "input"
         st.rerun()
 
-    if st.button("لوحة النتائج 📈"):
+    if st.button("لوحة النتائج"):
         st.session_state.page = "dashboard"
         st.rerun()
 
@@ -1182,12 +1305,12 @@ def home_page():
 
     H("""
     <div class="hero-box">
-        <div class="hero-icon">🕋</div>
-        <div class="hero-title">مرحبًا بك في نظام التنبؤ بازدحام المعتمرين</div>
-        <div class="hero-sub">Umrah Visitors Smart Forecasting System</div>
+        <div class="hero-kicker">نظام تنبؤ وتوصية مدعوم بالذكاء الاصطناعي</div>
+        <div class="hero-title">توقع الازدحام قبل الوصول</div>
+        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت زيارة أنسب</div>
         <div class="hero-text">
-            يساعد هذا النظام في عرض توقعات ازدحام المعتمرين للأيام القادمة،
-            وتحديد مستوى الازدحام، وتقديم توصية واضحة لاختيار اليوم الأنسب لأداء العمرة.
+            يعرض النظام العدد المتوقع للمعتمرين، ومستوى الازدحام، والتوصية المناسبة بناءً على التنبؤات اليومية
+            والمقارنة بين الأيام القريبة داخل المسجد الحرام.
         </div>
     </div>
     """)
@@ -1195,9 +1318,9 @@ def home_page():
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("📈", "توقعات ذكية", "عرض مستوى الازدحام المتوقع."),
-        ("📅", "أفضل يوم", "اقتراح يوم أقل ازدحامًا."),
-        ("✅", "توصية واضحة", "مساعدة المعتمر في القرار."),
+        ("01", "تنبؤ يومي", "تقدير العدد المتوقع للمعتمرين."),
+        ("02", "تصنيف الازدحام", "تحويل التوقعات إلى مستويات واضحة."),
+        ("03", "توصية عملية", "اقتراح يوم بديل عند ارتفاع الازدحام."),
     ]
 
     for col, (icon, title, desc) in zip([c1, c2, c3], cards):
@@ -1215,7 +1338,7 @@ def home_page():
     _, mid, _ = st.columns([1, 1.05, 1])
 
     with mid:
-        if st.button("ابدأ إدخال البيانات", use_container_width=True):
+        if st.button("بدء التنبؤ", use_container_width=True):
             st.session_state.page = "input"
             st.rerun()
 
@@ -1227,10 +1350,10 @@ def input_page():
 
     H("""
     <div class="form-shell">
-        <div class="form-title">نظام التنبؤ بمستويات ازدحام المعتمرين</div>
-        <div class="form-sub">المسجد الحرام الشريف</div>
+        <div class="form-title">إدخال بيانات الزيارة</div>
+        <div class="form-sub">اختيار التاريخ الهجري لتوليد التوقع والتوصية</div>
         <div class="form-line"></div>
-        <div class="form-section">✎ إدخال بيانات</div>
+        <div class="form-section">بيانات التوقع</div>
     </div>
     """)
 
@@ -1283,7 +1406,7 @@ def input_page():
     _, mid, _ = st.columns([1, 1.1, 1])
 
     with mid:
-        submitted = st.button("عرض النتائج", use_container_width=True)
+        submitted = st.button("عرض التوقع", use_container_width=True)
 
     if submitted:
         if not name.strip():
@@ -1355,16 +1478,16 @@ def dashboard_page():
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-        top_card("اليوم المختار", weekday, hijri_date, "📅")
+        top_card("اليوم المختار", weekday, hijri_date, "01")
 
     with c2:
-        top_card("المعتمرون المتوقعون", format_number(prediction), "معتمر", "👥")
+        top_card("العدد المتوقع للمعتمرين", format_number(prediction), "معتمر", "02")
 
     with c3:
-        top_card("مستوى الازدحام", crowd_level, english_level(crowd_level), "📊", crowd_level)
+        top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "03", crowd_level)
 
     with c4:
-        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "🌡️")
+        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "04")
 
     st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
@@ -1383,12 +1506,12 @@ def dashboard_page():
         if show_hajj_count:
             _, s1, _ = st.columns([1, 1.3, 1])
             with s1:
-                info_pill(f"عدد الحجاج المتوقع: {hajj_count}", "👥")
+                info_pill(f"عدد الحجاج المتوقع: {hajj_count}", "حج")
 
         elif show_tawaf_ifadah:
             _, s1, _ = st.columns([1, 1.3, 1])
             with s1:
-                info_pill(f"عدد طواف الإفاضة المتوقع: {tawaf_count}", "🕋")
+                info_pill(f"عدد طواف الإفاضة المتوقع: {tawaf_count}", "طواف")
 
     st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
@@ -1397,14 +1520,14 @@ def dashboard_page():
     with suggest_col:
         H("""
         <div class="suggest-box side-suggest-box">
-            <div class="suggest-title">هل تبحث عن يوم أفضل؟</div>
-            <div class="suggest-sub">يمكنك عرض اليوم الأقل ازدحامًا ضمن الأيام السبعة القريبة.</div>
+            <div class="suggest-title">اقتراح يوم بديل</div>
+            <div class="suggest-sub">يقارن النظام الأيام السبعة القريبة ويقترح الأقل ازدحامًا عند الحاجة.</div>
         </div>
         """)
 
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
-        if st.button("عرض اليوم الأفضل", use_container_width=True):
+        if st.button("اقتراح يوم أنسب", use_container_width=True):
             st.session_state.show_best_day = True
 
         if st.session_state.show_best_day:
@@ -1413,7 +1536,7 @@ def dashboard_page():
     with chart_col:
         H("""
         <div class="section-box">
-            <div class="section-title">توقعات ازدحام المعتمرين – الأيام القادمة (7 أيام)</div>
+            <div class="section-title">الاتجاه المتوقع للعدد اليومي خلال 7 أيام</div>
             <div class="section-line"></div>
         </div>
         """)
@@ -1426,7 +1549,7 @@ def dashboard_page():
     _, mid, _ = st.columns([1, 1.2, 1])
 
     with mid:
-        if st.button("رجوع لإدخال بيانات جديدة", use_container_width=True):
+        if st.button("إدخال تاريخ جديد", use_container_width=True):
             st.session_state.page = "input"
             st.session_state.show_best_day = False
             st.rerun()
