@@ -1561,10 +1561,10 @@ def input_page():
 
     H("""
     <div class="form-shell">
-        <div class="form-title">إدخال بيانات الزيارة</div>
-        <div class="form-sub">اختيار التاريخ الهجري لتوليد التوقع والتوصية</div>
+        <div class="form-title">تحديد موعد الزيارة</div>
+        <div class="form-sub">اختر تاريخ الزيارة لمعرفة مستوى الازدحام المتوقع</div>
         <div class="form-line"></div>
-        <div class="form-section">بيانات التوقع</div>
+        <div class="form-section">معلومات الزيارة</div>
     </div>
     """)
 
