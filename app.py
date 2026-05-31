@@ -1367,22 +1367,311 @@ div[data-testid="stHorizontalBlock"] {
 """)
 
 
+H("""
+<style>
+/* ===========================
+   FINAL POLISH LAYER - v3
+   Executive / LinkedIn-ready UI
+   UI only. No model or data logic changes.
+=========================== */
+
+.block-container {
+    max-width: 1340px !important;
+    padding-top: 0.75rem !important;
+}
+
+.main-header {
+    min-height: 120px !important;
+    border-radius: 34px !important;
+    padding: 24px 34px !important;
+    background:
+      radial-gradient(circle at 13% 28%, rgba(216,189,120,0.20), transparent 26%),
+      linear-gradient(135deg, rgba(5,38,33,0.99), rgba(12,70,58,0.96) 58%, rgba(5,40,35,0.99)) !important;
+    border: 1px solid rgba(216,189,120,0.44) !important;
+    box-shadow: 0 28px 70px rgba(6,43,37,0.18), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+
+.main-header::after {
+    content:"";
+    position:absolute;
+    inset:10px;
+    border-radius:28px;
+    border:1px solid rgba(255,248,232,0.045);
+    pointer-events:none;
+}
+
+.header-logo-box {
+    width:54px !important;
+    height:54px !important;
+    border-radius:18px !important;
+    font-size:20px !important;
+    background: rgba(255,255,255,0.055) !important;
+    box-shadow: inset 0 0 28px rgba(216,189,120,0.08), 0 12px 26px rgba(0,0,0,0.08) !important;
+}
+
+.header-main-title {
+    font-size:30px !important;
+    letter-spacing:-0.9px !important;
+    text-shadow: 0 10px 24px rgba(0,0,0,0.16);
+}
+
+.header-subtitle {
+    font-size:14px !important;
+    color:#E2C980 !important;
+}
+
+.header-chip-row {
+    margin-top:13px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.header-chip {
+    padding:5px 11px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,248,232,0.09);
+    color:#F7F1E3;
+    font-size:10px;
+    font-weight:900;
+}
+
+.nav-caption { display:none !important; }
+
+.nav-wrap {
+    margin: 2px auto 20px auto;
+    padding: 8px;
+    max-width: 960px;
+    background: rgba(255,255,255,0.54);
+    border: 1px solid rgba(199,163,90,0.22);
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(8,46,40,0.055);
+    backdrop-filter: blur(18px);
+}
+
+.nav-wrap .stButton button {
+    height:42px !important;
+    border-radius:17px !important;
+    box-shadow: none !important;
+    background: rgba(255,255,255,0.60) !important;
+    color:#0A352E !important;
+    border:1px solid rgba(199,163,90,0.16) !important;
+}
+
+.nav-wrap .stButton button:hover {
+    background: linear-gradient(135deg, #0F6E52, #062B25) !important;
+    color:#FFF8E8 !important;
+    border-color: rgba(199,163,90,0.32) !important;
+}
+
+.hero-box.final-hero {
+    display:grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap:24px;
+    text-align:right;
+    align-items:center;
+    padding:34px 36px !important;
+}
+
+.hero-copy { position:relative; z-index:1; }
+
+.hero-title {
+    font-size:36px !important;
+    line-height:1.35;
+}
+
+.hero-text {
+    margin-right:0 !important;
+    max-width:720px !important;
+}
+
+.hero-visual {
+    min-height:250px;
+    border-radius:28px;
+    background:
+      radial-gradient(circle at 25% 20%, rgba(216,189,120,0.25), transparent 30%),
+      linear-gradient(145deg, rgba(6,43,37,0.98), rgba(15,110,82,0.92));
+    border:1px solid rgba(216,189,120,0.32);
+    box-shadow:0 26px 58px rgba(8,46,40,0.14);
+    padding:24px;
+    color:#FFF8E8;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.hero-visual-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.visual-badge {
+    width:52px;
+    height:52px;
+    border-radius:18px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(245,231,194,0.22);
+    background:rgba(255,255,255,0.07);
+    color:#E2C980;
+    font-weight:900;
+    font-size:18px;
+}
+
+.visual-small {
+    color:#D8BD78;
+    font-size:11px;
+    font-weight:900;
+}
+
+.visual-number {
+    font-size:52px;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:-1.4px;
+    text-align:center;
+}
+
+.visual-label {
+    color:#D8BD78;
+    font-size:13px;
+    font-weight:900;
+    text-align:center;
+    margin-top:6px;
+}
+
+.visual-flow {
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:9px;
+}
+
+.visual-flow div {
+    padding:9px 8px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.08);
+    text-align:center;
+    color:#F7F1E3;
+    font-size:11px;
+    font-weight:900;
+}
+
+.feature-card {
+    min-height:150px !important;
+    background:rgba(255,255,255,0.76) !important;
+}
+
+.main-kpi-card {
+    min-height:236px !important;
+    border-radius:34px !important;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(216,189,120,0.21), transparent 28%),
+      linear-gradient(135deg, rgba(5,38,33,0.99), rgba(16,108,80,0.93)) !important;
+}
+
+.main-kpi-number {
+    font-size:70px !important;
+    text-shadow: 0 18px 40px rgba(0,0,0,0.20);
+}
+
+.metric-card {
+    min-height:104px !important;
+    border-radius:22px !important;
+}
+
+.metric-value { font-size:25px !important; }
+
+.reco-box {
+    padding: 16px 24px !important;
+    border-radius:24px !important;
+}
+
+.reco-title { font-size:25px !important; }
+.reco-text { font-size:13px !important; }
+
+.dashboard-note {
+    width:fit-content;
+    margin:0 auto 12px auto;
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.58);
+    border:1px solid rgba(199,163,90,0.20);
+    color:#66736D;
+    font-size:10px;
+    font-weight:900;
+    backdrop-filter:blur(12px);
+}
+
+.chart-frame {
+    background:rgba(255,255,255,0.56);
+    border:1px solid rgba(199,163,90,0.20);
+    border-radius:30px;
+    padding:16px 18px 8px 18px;
+    box-shadow:0 22px 48px rgba(8,46,40,0.06);
+    backdrop-filter:blur(14px);
+}
+
+.chart-frame .section-box {
+    background:transparent !important;
+    box-shadow:none !important;
+    border:none !important;
+    padding:0 0 6px 0 !important;
+}
+
+.suggest-box.side-suggest-box {
+    min-height:178px !important;
+    border-radius:30px !important;
+}
+
+.best-card {
+    border-radius:30px !important;
+}
+
+.form-shell {
+    max-width:1120px;
+    margin:0 auto;
+}
+
+.stTextInput input, .stSelectbox > div > div {
+    background:rgba(255,255,255,0.88) !important;
+}
+
+@media (max-width: 900px) {
+    .hero-box.final-hero { grid-template-columns:1fr; }
+    .visual-number { font-size:40px; }
+    .header-main-title { font-size:22px !important; }
+    .main-kpi-number { font-size:48px !important; }
+}
+</style>
+""")
+
+
 
 def show_header():
     H("""
     <div class="main-header">
         <div class="header-logo-box">◇</div>
-        <div style="flex:1;">
+        <div style="flex:1; position:relative; z-index:2;">
             <div class="header-main-title">نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين</div>
             <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
             <div class="header-decor"></div>
+            <div class="header-chip-row">
+                <span class="header-chip">Growth-Rate XGBoost</span>
+                <span class="header-chip">تحليل 7 أيام</span>
+                <span class="header-chip">توصية ذكية</span>
+            </div>
         </div>
+        <div style="width:54px;"></div>
     </div>
     """)
 
 
 def render_nav():
-    H('<div class="nav-caption">التنقل بين أقسام النظام</div>')
+    H('<div class="nav-wrap">')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
@@ -1396,6 +1685,7 @@ def render_nav():
         if st.button("لوحة النتائج", use_container_width=True):
             st.session_state.page = "dashboard"
             st.rerun()
+    H('</div>')
     st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
 
 
@@ -1416,13 +1706,30 @@ def home_page():
     render_nav()
 
     H("""
-    <div class="hero-box">
-        <div class="hero-kicker">نظام تنبؤ وتوصية</div>
-        <div class="hero-title">توقع الازدحام قبل الوصول</div>
-        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت أداء العمرة الأنسب</div>
-        <div class="hero-text">
-            يعرض النظام العدد المتوقع للمعتمرين، ومستوى الازدحام، والتوصية المناسبة بناءً على التنبؤات اليومية
-            والمقارنة بين الأيام القريبة في المسجد الحرام.
+    <div class="hero-box final-hero">
+        <div class="hero-copy">
+            <div class="hero-kicker">نظام تنبؤ وتوصية</div>
+            <div class="hero-title">توقع الازدحام قبل الوصول</div>
+            <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت أداء العمرة الأنسب</div>
+            <div class="hero-text">
+                يحوّل النظام نتائج التنبؤ إلى مؤشرات واضحة تساعد المعتمر على فهم مستوى الازدحام المتوقع،
+                مقارنة الأيام القريبة، واختيار يوم أكثر ملاءمة لأداء العمرة في المسجد الحرام.
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-visual-top">
+                <div class="visual-small">Forecasting Engine</div>
+                <div class="visual-badge">◇</div>
+            </div>
+            <div>
+                <div class="visual-number">7 أيام</div>
+                <div class="visual-label">تحليل تنبؤي وتوصية بأفضل يوم</div>
+            </div>
+            <div class="visual-flow">
+                <div>بيانات</div>
+                <div>تنبؤ</div>
+                <div>توصية</div>
+            </div>
         </div>
     </div>
     """)
@@ -1430,9 +1737,9 @@ def home_page():
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("01", "تنبؤ يومي", "تقدير العدد المتوقع للمعتمرين."),
-        ("02", "تصنيف الازدحام", "تحويل التوقعات إلى مستويات واضحة."),
-        ("03", "توصية عملية", "اقتراح يوم بديل عند ارتفاع الازدحام."),
+        ("01", "تنبؤ يومي", "تقدير العدد المتوقع للمعتمرين بناءً على النتائج المحفوظة من النموذج."),
+        ("02", "تصنيف الازدحام", "تحويل الرقم المتوقع إلى مستوى ازدحام واضح وسهل الفهم."),
+        ("03", "توصية عملية", "اقتراح يوم بديل عند الحاجة بناءً على أقل ازدحام خلال الأيام القريبة."),
     ]
 
     for col, (icon, title, desc) in zip([c1, c2, c3], cards):
@@ -1589,7 +1896,9 @@ def dashboard_page():
 
     best_day = get_best_day(df7, day, month)
 
-    main_col, side_col = st.columns([1.55, 1], gap="large")
+    H('<div class="dashboard-note">لوحة تنفيذية تعرض التوقع الرئيسي، مستوى الازدحام، والتوصية المقترحة لليوم المحدد</div>')
+
+    main_col, side_col = st.columns([1.65, 0.92], gap="large")
 
     with main_col:
         main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
@@ -1628,7 +1937,7 @@ def dashboard_page():
 
     st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-    suggest_col, chart_col = st.columns([1, 2.25], gap="large")
+    suggest_col, chart_col = st.columns([0.92, 2.35], gap="large")
 
     with suggest_col:
         H("""
@@ -1648,14 +1957,16 @@ def dashboard_page():
 
     with chart_col:
         H("""
-        <div class="section-box">
-            <div class="section-title">الاتجاه المتوقع للعدد اليومي خلال 7 أيام</div>
-            <div class="section-line"></div>
-        </div>
+        <div class="chart-frame">
+            <div class="section-box">
+                <div class="section-title">الاتجاه المتوقع للعدد اليومي خلال 7 أيام</div>
+                <div class="section-line"></div>
+            </div>
         """)
 
         fig = build_chart(df7, month, day)
         st.plotly_chart(fig, use_container_width=True)
+        H("</div>")
 
     st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
