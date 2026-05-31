@@ -1206,21 +1206,7 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
         </div>
         <div class="cc-level" style="color:{color};">{esc(level)}</div>
         <div class="cc-label">مستوى الازدحام المتوقع</div>
-        <div class="cc-rule"></div>
-        <div class="cc-stats">
-          <div class="cc-stat">
-            <div class="cc-stat-label">العدد المتوقع</div>
-            <div class="cc-stat-value">{esc(prediction_text)}</div>
-          </div>
-          <div class="cc-stat">
-            <div class="cc-stat-label">اليوم</div>
-            <div class="cc-stat-value">{esc(weekday)}</div>
-          </div>
-          <div class="cc-stat">
-            <div class="cc-stat-label">التاريخ الهجري</div>
-            <div class="cc-stat-value" style="font-size:15px;">{esc(str(hijri_date))}</div>
-          </div>
-        </div>
+        
       </div>
     </div>
     """)
