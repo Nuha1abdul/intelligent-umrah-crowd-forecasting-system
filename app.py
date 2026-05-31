@@ -1035,7 +1035,21 @@ div[data-testid="stHorizontalBlock"] {
   top: 0; right: 0; left: 0;
   height: 3px;
   background: linear-gradient(90deg, transparent, #C4903F 30%, rgba(13,107,79,0.55) 70%, transparent);
+} 
+.reco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: #0D6B4F;
+  background: rgba(13,107,79,0.08);
+  border: 1px solid rgba(13,107,79,0.15);
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 14px;
 }
+
 .reco-eyebrow { color: #7A6A4C; font-size: 11px; font-weight: 800; margin-bottom: 6px; letter-spacing: 0.3px; }
 .reco-decision { font-size: 26px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.3px; }
 .reco-rule {
@@ -1199,10 +1213,6 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
     H(f"""
     <div class="crowding-card">
       <div class="cc-inner">
-        <div class="cc-badge">
-          <span class="cc-badge-dot"></span>
-          التوصية الذكية
-        </div>
         <div class="cc-level" style="color:{color};">{esc(level)}</div>
         <div class="cc-label">مستوى الازدحام المتوقع</div>
         
@@ -1229,12 +1239,15 @@ def reco_card(decision, reason, level):
     color = LEVEL_COLORS.get(level, "#052A24")
     H(f"""
     <div class="reco-card">
-      <div class="reco-eyebrow">التوصية النهائية</div>
-      <div class="reco-decision" style="color:{color};">{esc(decision)}</div>
-      <div class="reco-rule"></div>
-      <div class="reco-text">{esc(reason)}</div>
+        <div class="reco-badge">
+            <span class="cc-badge-dot"></span>
+        التوصية النهائية
     </div>
-    """)
+    <div class="reco-decision" style="color:{color};">{esc(decision)}</div>
+    <div class="reco-rule"></div>
+    <div class="reco-text">{esc(reason)}</div>
+</div>
+""")
 
 
 def best_day_card(row):
