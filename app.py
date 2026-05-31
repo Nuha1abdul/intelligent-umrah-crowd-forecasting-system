@@ -643,10 +643,13 @@ def top_card(title, value, subtitle, icon="", level=None):
         shadow = hex_to_rgba(color, 0.18)
 
     H(f"""
-    <div class="metric-card" style="background:{bg}; border-color:{border}; box-shadow:0 18px 35px {shadow};">
-        <div class="metric-label">{esc(title)}</div>
-        <div class="metric-value" style="color:{color};">{esc(value)}</div>
-        <div class="metric-subtitle">{esc(subtitle)}</div>
+    <div class="metric-card vertical-metric-card" style="background:{bg}; border-color:{border}; box-shadow:0 18px 35px {shadow};">
+        <div class="metric-icon-badge">{esc(icon)}</div>
+        <div class="metric-content">
+            <div class="metric-label">{esc(title)}</div>
+            <div class="metric-value" style="color:{color};">{esc(value)}</div>
+            <div class="metric-subtitle">{esc(subtitle)}</div>
+        </div>
         <div class="metric-accent" style="background:{accent};"></div>
     </div>
     """)
@@ -660,11 +663,6 @@ def main_prediction_card(value, level, day_name, hijri_date):
         <div class="main-kpi-kicker">التوصية الذكية</div>
         <div class="main-kpi-number crowding-level-text" style="color:{color};">{esc(level)}</div>
         <div class="main-kpi-label">مستوى الازدحام المتوقع</div>
-        <div class="main-kpi-meta refined-meta">
-            <span>👥 <strong>{esc(value)}</strong> معتمر</span>
-            <span>📅 <strong>{esc(day_name)}</strong></span>
-            <span>🗓 <strong>{esc(hijri_date)}</strong></span>
-        </div>
     </div>
     """)
 
@@ -1781,13 +1779,11 @@ def dashboard_page():
         main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
 
     with side_col:
-        s1, s2 = st.columns(2)
-        with s1:
-            top_card("العدد المتوقع", format_number(prediction), "معتمر", "")
-        with s2:
-            top_card("اليوم المختار", weekday, hijri_date, "")
+        top_card("اليوم المختار", weekday, hijri_date, "📅")
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
-        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "")
+        top_card("العدد المتوقع", format_number(prediction), "معتمر", "👥")
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "℃")
     st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
     H(f"""
@@ -1852,6 +1848,98 @@ def dashboard_page():
             st.session_state.page = "input"
             st.session_state.show_best_day = False
             st.rerun()
+
+
+H("""
+<style>
+/* Dashboard final layout adjustment: stacked side cards + clean main recommendation card */
+.vertical-metric-card {
+    min-height: 104px !important;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 18px !important;
+    padding: 16px 20px !important;
+    border-radius: 26px !important;
+}
+
+.vertical-metric-card .metric-content {
+    flex: 1 !important;
+    text-align: right !important;
+}
+
+.metric-icon-badge {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #B8862B !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    background: radial-gradient(circle, rgba(255,248,232,0.98), rgba(255,255,255,0.72)) !important;
+    border: 1px solid rgba(199,163,90,0.28) !important;
+    box-shadow: 0 12px 28px rgba(199,163,90,0.13), inset 0 0 18px rgba(199,163,90,0.06) !important;
+}
+
+.vertical-metric-card .metric-label {
+    font-size: 13px !important;
+    margin-bottom: 5px !important;
+}
+
+.vertical-metric-card .metric-value {
+    font-size: 28px !important;
+    margin-top: 2px !important;
+}
+
+.vertical-metric-card .metric-subtitle {
+    margin-top: 4px !important;
+}
+
+.refined-kpi {
+    min-height: 302px !important;
+    justify-content: center !important;
+}
+
+.refined-kpi .main-kpi-kicker {
+    margin-bottom: 20px !important;
+}
+
+.refined-kpi .crowding-level-text {
+    font-size: 88px !important;
+    line-height: 0.95 !important;
+    margin-bottom: 18px !important;
+}
+
+.refined-kpi .main-kpi-label {
+    font-size: 18px !important;
+    margin-top: 0 !important;
+}
+
+.refined-kpi .main-kpi-meta,
+.refined-meta {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .vertical-metric-card {
+        min-height: 92px !important;
+    }
+    .metric-icon-badge {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        font-size: 19px !important;
+    }
+    .refined-kpi .crowding-level-text {
+        font-size: 52px !important;
+    }
+}
+</style>
+""")
 
 
 if st.session_state.page == "home":
