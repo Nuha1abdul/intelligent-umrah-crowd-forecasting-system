@@ -1331,12 +1331,10 @@ def input_page():
 
     H("""
     <div class="form-card">
-      <div class="form-title">تحديد موعد الزيارة</div>
+      <div class="form-title">تحديد موعد العمرة</div>
       <div class="form-sub">اختر تاريخ الزيارة لمعرفة مستوى الازدحام المتوقع</div>
       <div class="form-rule"></div>
-      <div style="text-align:center;">
-        <span class="form-section-badge">معلومات الزيارة</span>
-      </div>
+
     </div>
     """)
 
