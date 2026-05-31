@@ -1177,7 +1177,6 @@ def show_header():
 
 
 def render_nav():
-    H('<div class="nav-label">توقعات ذكية للأيام القادمة</div>')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
