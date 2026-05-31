@@ -8,10 +8,10 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="التنبؤ بمستويات الازدحام وتوصية أوقات الزيارة",
-    page_icon="🕋",
+    page_title="نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين",
+    page_icon="◇",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 
@@ -34,21 +34,21 @@ HIJRI_MONTHS = [
 NATIONALITY_OPTIONS = ["سعودي", "غير سعودي"]
 
 LEVEL_COLORS = {
-    "منخفض": "#0F8B5F",
-    "متوسط": "#B88318",
-    "مرتفع": "#B94B42"
+    "منخفض": "#159a5c",
+    "متوسط": "#c8921e",
+    "مرتفع": "#d2554a"
 }
 
 LEVEL_BG = {
-    "منخفض": "#ECF7F0",
-    "متوسط": "#FFF6E2",
-    "مرتفع": "#FFF0EE"
+    "منخفض": "#eef8f1",
+    "متوسط": "#fff8e8",
+    "مرتفع": "#fff1f0"
 }
 
 LEVEL_BORDER = {
-    "منخفض": "#BDE3CB",
-    "متوسط": "#E8C77E",
-    "مرتفع": "#E4A7A1"
+    "منخفض": "#b9dec6",
+    "متوسط": "#ead29b",
+    "مرتفع": "#e7b7b2"
 }
 
 
@@ -457,8 +457,7 @@ def get_reason(decision):
     return "الازدحام المتوقع ضمن المستوى المتوسط، لذلك يمكن أداء العمرة مع الحذر واختيار الوقت المناسب."
 
 
-
-def build_chart(df7, selected_month=None, selected_day=None, best_day=None):
+def build_chart(df7, selected_month=None, selected_day=None):
     cdf = df7.copy().reset_index(drop=True)
     cdf["Prediction"] = pd.to_numeric(cdf["Prediction"], errors="coerce")
     cdf["Local_Crowding_Level"] = cdf["Local_Crowding_Level"].apply(normalize_level)
@@ -477,101 +476,129 @@ def build_chart(df7, selected_month=None, selected_day=None, best_day=None):
             (cdf["Hijri_Day_Num"].astype(int) == int(selected_day))
         )
 
-    best_mask = pd.Series(False, index=cdf.index)
-    if best_day is not None:
-        try:
-            best_month = normalize_month_name(best_day.get(MONTH_COL, ""))
-            best_day_num = int(best_day.get("Hijri_Day_Num"))
-            best_mask = (
-                (cdf[MONTH_COL].astype(str).str.strip() == str(best_month).strip()) &
-                (cdf["Hijri_Day_Num"].astype(int) == best_day_num)
-            )
-        except Exception:
-            pass
-
     y_min = cdf["Prediction"].min()
     y_max = cdf["Prediction"].max()
-    pad = max((y_max - y_min) * 0.22, 500)
+    pad = max((y_max - y_min) * 0.25, 450)
     base_y = max(0, y_min - pad)
 
     fig = go.Figure()
 
-    # soft premium area
-    fig.add_trace(go.Scatter(
-        x=cdf["x_label"],
-        y=cdf["Prediction"],
-        mode="lines",
-        line=dict(color="rgba(15,110,82,0.12)", width=0, shape="spline"),
-        fill="tozeroy",
-        fillcolor="rgba(15,110,82,0.08)",
-        hoverinfo="skip",
-        showlegend=False,
-    ))
+    for i in range(len(cdf) - 1):
+        x0 = cdf.loc[i, "x_label"]
+        x1 = cdf.loc[i + 1, "x_label"]
+        y0 = cdf.loc[i, "Prediction"]
+        y1 = cdf.loc[i + 1, "Prediction"]
 
-    # main muted line
-    fig.add_trace(go.Scatter(
-        x=cdf["x_label"],
-        y=cdf["Prediction"],
-        mode="lines",
-        line=dict(color="rgba(8,46,40,0.45)", width=4, shape="spline"),
-        hoverinfo="skip",
-        showlegend=False,
-    ))
+        level_1 = normalize_level(cdf.loc[i, "Local_Crowding_Level"])
+        level_2 = normalize_level(cdf.loc[i + 1, "Local_Crowding_Level"])
 
-    normal_df = cdf[~selected_mask & ~best_mask].copy()
-    fig.add_trace(go.Scatter(
-        x=normal_df["x_label"],
-        y=normal_df["Prediction"],
-        mode="markers+text",
-        marker=dict(size=15, color="rgba(8,46,40,0.46)", line=dict(color="white", width=2)),
-        text=normal_df["Prediction"].apply(lambda x: f"{int(round(float(x))):,}" if not pd.isna(x) else ""),
-        textposition="top center",
-        textfont=dict(size=12, color="#47534f"),
-        hovertemplate="<b>%{x}</b><br>العدد المتوقع: %{y:,.0f}<extra></extra>",
-        name="الأيام القريبة",
-    ))
+        if "مرتفع" in [level_1, level_2]:
+            seg_color = LEVEL_COLORS["مرتفع"]
+        elif "متوسط" in [level_1, level_2]:
+            seg_color = LEVEL_COLORS["متوسط"]
+        else:
+            seg_color = LEVEL_COLORS["منخفض"]
 
-    if best_mask.any():
-        best_df = cdf[best_mask].iloc[[0]]
         fig.add_trace(go.Scatter(
-            x=best_df["x_label"],
-            y=best_df["Prediction"],
+            x=[x0, x0, x1, x1],
+            y=[base_y, y0, y1, base_y],
+            mode="lines",
+            fill="toself",
+            fillcolor=hex_to_rgba(seg_color, 0.18),
+            line=dict(color="rgba(0,0,0,0)", width=0),
+            hoverinfo="skip",
+            showlegend=False
+        ))
+
+    for i in range(len(cdf) - 1):
+        x0 = cdf.loc[i, "x_label"]
+        x1 = cdf.loc[i + 1, "x_label"]
+        y0 = cdf.loc[i, "Prediction"]
+        y1 = cdf.loc[i + 1, "Prediction"]
+
+        level_1 = normalize_level(cdf.loc[i, "Local_Crowding_Level"])
+        level_2 = normalize_level(cdf.loc[i + 1, "Local_Crowding_Level"])
+
+        if "مرتفع" in [level_1, level_2]:
+            seg_color = LEVEL_COLORS["مرتفع"]
+        elif "متوسط" in [level_1, level_2]:
+            seg_color = LEVEL_COLORS["متوسط"]
+        else:
+            seg_color = LEVEL_COLORS["منخفض"]
+
+        fig.add_trace(go.Scatter(
+            x=[x0, x1],
+            y=[y0, y1],
+            mode="lines",
+            line=dict(color=seg_color, width=5, shape="spline"),
+            hoverinfo="skip",
+            showlegend=False
+        ))
+
+    for level in ["منخفض", "متوسط", "مرتفع"]:
+        level_df = cdf[cdf["Local_Crowding_Level"] == level].copy()
+
+        fig.add_trace(go.Scatter(
+            x=level_df["x_label"],
+            y=level_df["Prediction"],
             mode="markers+text",
-            marker=dict(size=25, color="#159a5c", line=dict(color="white", width=4)),
-            text=["أفضل بديل"],
-            textposition="bottom center",
-            textfont=dict(size=12, color="#0b5c43"),
-            hovertemplate="<b>أفضل يوم بديل</b><br>%{x}<br>العدد المتوقع: %{y:,.0f}<extra></extra>",
-            name="أفضل بديل",
+            marker=dict(
+                size=16,
+                color=LEVEL_COLORS[level],
+                line=dict(color="white", width=3)
+            ),
+            text=level_df["Prediction"].apply(
+                lambda x: f"{int(round(float(x))):,}" if not pd.isna(x) else ""
+            ),
+            textposition="top center",
+            textfont=dict(size=12, color="#064b3b"),
+            hovertemplate="<b>%{x}</b><br>المعتمرون المتوقعون: %{y:,.0f}<extra></extra>",
+            name=level
         ))
 
     if selected_mask.any():
-        selected_df = cdf[selected_mask].iloc[[0]]
+        selected_point = cdf[selected_mask].iloc[[0]]
         fig.add_trace(go.Scatter(
-            x=selected_df["x_label"],
-            y=selected_df["Prediction"],
+            x=selected_point["x_label"],
+            y=selected_point["Prediction"],
             mode="markers",
-            marker=dict(size=44, color="rgba(199,163,90,0.20)", line=dict(color="rgba(199,163,90,0.24)", width=2)),
+            marker=dict(
+                size=48,
+                color="rgba(199,163,90,0.18)",
+                line=dict(color="rgba(199,163,90,0.24)", width=2)
+            ),
             hoverinfo="skip",
-            showlegend=False,
+            showlegend=False
         ))
         fig.add_trace(go.Scatter(
-            x=selected_df["x_label"],
-            y=selected_df["Prediction"],
+            x=selected_point["x_label"],
+            y=selected_point["Prediction"],
             mode="markers+text",
-            marker=dict(size=24, color="#fff8e8", line=dict(color="#c7a35a", width=5)),
+            marker=dict(
+                size=25,
+                color="#FFF8E8",
+                line=dict(color="#C7A35A", width=5),
+                symbol="circle"
+            ),
             text=["اليوم المختار"],
             textposition="bottom center",
-            textfont=dict(size=12, color="#062b25"),
+            textfont=dict(size=12, color="#062B25"),
             hovertemplate="<b>اليوم المختار</b><br>%{x}<br>العدد المتوقع: %{y:,.0f}<extra></extra>",
             name="اليوم المختار",
+            showlegend=False
         ))
 
+    q1 = cdf["Prediction"].quantile(0.33)
+    q2 = cdf["Prediction"].quantile(0.66)
+
+    fig.add_hline(y=q1, line_dash="dot", line_color="rgba(21,154,92,0.30)", line_width=1)
+    fig.add_hline(y=q2, line_dash="dot", line_color="rgba(200,146,30,0.30)", line_width=1)
+
     fig.update_layout(
-        height=450,
-        margin=dict(l=20, r=20, t=34, b=20),
+        height=430,
+        margin=dict(l=20, r=20, t=28, b=18),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.64)",
+        plot_bgcolor="rgba(255,255,255,0.62)",
         font=dict(family="Cairo", size=12, color="#082E28"),
         legend=dict(
             orientation="h",
@@ -579,17 +606,16 @@ def build_chart(df7, selected_month=None, selected_day=None, best_day=None):
             y=1.04,
             xanchor="left",
             x=0.01,
-            title="",
+            title="مستوى الازدحام",
             font=dict(size=11)
         ),
-        xaxis=dict(showgrid=False, title="", zeroline=False),
+        xaxis=dict(showgrid=False, title=""),
         yaxis=dict(
             range=[base_y, y_max + pad],
             showgrid=True,
             gridcolor="rgba(120,100,60,0.08)",
             tickformat=",",
-            title=dict(text="العدد المتوقع للمعتمرين", font=dict(size=11)),
-            zeroline=False,
+            title=dict(text="عدد المعتمرين", font=dict(size=11))
         ),
         hoverlabel=dict(
             bgcolor="#062B25",
@@ -601,38 +627,23 @@ def build_chart(df7, selected_month=None, selected_day=None, best_day=None):
     return fig
 
 
-def level_hero_card(level, prediction, weekday, hijri_date):
-    level = normalize_level(level)
-    color = LEVEL_COLORS.get(level, "#0F6E52")
-    bg = LEVEL_BG.get(level, "#eef8f1")
-    H(f"""
-    <div class="level-hero" style="--level-color:{color}; --level-bg:{bg};">
-        <div class="level-kicker">مستوى الازدحام المتوقع</div>
-        <div class="level-value" style="color:{color};">{esc(level)}</div>
-        <div class="level-meta">
-            <span>العدد المتوقع: <strong>{esc(format_number(prediction))}</strong></span>
-            <span>اليوم المختار: <strong>{esc(weekday)}</strong></span>
-            <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
-        </div>
-    </div>
-    """)
-
-
-def top_card(title, value, subtitle, level=None):
+def top_card(title, value, subtitle, icon="", level=None):
     if level is None:
         color = "#123F35"
-        bg = "rgba(255,255,255,0.82)"
-        border = "rgba(201,169,95,0.28)"
+        bg = "rgba(255,255,255,0.76)"
+        border = "rgba(201,169,95,0.30)"
         accent = "#C7A35A"
+        shadow = "rgba(8,46,40,0.06)"
     else:
         level = normalize_level(level)
         color = LEVEL_COLORS.get(level, "#123F35")
-        bg = LEVEL_BG.get(level, "rgba(255,255,255,0.82)")
-        border = LEVEL_BORDER.get(level, "rgba(201,169,95,0.28)")
+        bg = LEVEL_BG.get(level, "rgba(255,255,255,0.76)")
+        border = LEVEL_BORDER.get(level, "rgba(201,169,95,0.30)")
         accent = color
+        shadow = hex_to_rgba(color, 0.18)
 
     H(f"""
-    <div class="metric-card" style="background:{bg}; border-color:{border};">
+    <div class="metric-card" style="background:{bg}; border-color:{border}; box-shadow:0 18px 35px {shadow};">
         <div class="metric-label">{esc(title)}</div>
         <div class="metric-value" style="color:{color};">{esc(value)}</div>
         <div class="metric-subtitle">{esc(subtitle)}</div>
@@ -641,7 +652,24 @@ def top_card(title, value, subtitle, level=None):
     """)
 
 
-def info_pill(text, icon=""):
+def main_prediction_card(value, level, day_name, hijri_date):
+    level = normalize_level(level)
+    color = LEVEL_COLORS.get(level, "#0F6E52")
+    H(f"""
+    <div class="main-kpi-card">
+        <div class="main-kpi-kicker">التوقع الرئيسي</div>
+        <div class="main-kpi-number">{esc(value)}</div>
+        <div class="main-kpi-label">العدد المتوقع للمعتمرين</div>
+        <div class="main-kpi-meta">
+            <span>اليوم المختار: <strong>{esc(day_name)}</strong></span>
+            <span>التاريخ الهجري: <strong>{esc(hijri_date)}</strong></span>
+            <span style="color:{color};">مستوى الازدحام: <strong>{esc(level)}</strong></span>
+        </div>
+    </div>
+    """)
+
+
+def info_pill(text, icon="👥"):
     H(f"""
     <div class="small-pill">
         <span class="pill-icon">{esc(icon)}</span>
@@ -650,49 +678,28 @@ def info_pill(text, icon=""):
     """)
 
 
-def best_day_card(row, selected_prediction=None):
+def best_day_card(row):
     if row is None:
-        H('<div class="best-card"><div class="best-title">لا يوجد يوم بديل ضمن الأيام السبعة القريبة</div></div>')
+        H("""
+        <div class="best-card">
+            <div class="best-title">لا يوجد يوم بديل ضمن الأيام السبعة القريبة</div>
+        </div>
+        """)
         return
 
     day_name = esc(row.get("Weekday_AR", "غير متاح"))
     hijri_date = esc(row.get("Hijri_Date", ""))
-    visitors_val = float(row.get("Prediction", 0))
-    visitors = format_number(visitors_val)
-
-    diff_text = ""
-    if selected_prediction is not None and visitors_val > 0:
-        diff = ((float(selected_prediction) - visitors_val) / visitors_val) * 100
-        if diff > 0:
-            diff_text = f"أقل بحوالي {diff:.0f}% من اليوم المختار"
-        else:
-            diff_text = "الأقرب من حيث انخفاض الازدحام"
+    visitors = format_number(row.get("Prediction", 0))
 
     H(f"""
     <div class="best-card">
-        <div class="best-kicker">أفضل يوم بديل</div>
+        <div class="best-kicker">اليوم الأنسب للزيارة</div>
         <div class="best-title">{day_name}</div>
         <div class="best-meta">
             <span>التاريخ الهجري: <strong>{hijri_date}</strong></span>
             <span>العدد المتوقع: <strong>{visitors}</strong></span>
         </div>
-        <div class="best-note">{esc(diff_text or 'الأقل ازدحامًا ضمن الأيام السبعة القريبة.')}</div>
-    </div>
-    """)
-
-
-def quick_summary(level, prediction, best_day):
-    best_label = "غير متاح"
-    if best_day is not None:
-        best_label = str(best_day.get("Weekday_AR", "غير متاح"))
-    H(f"""
-    <div class="summary-card">
-        <div class="summary-title">ملخص سريع</div>
-        <div class="summary-grid">
-            <div><span>مستوى الازدحام</span><strong>{esc(level)}</strong></div>
-            <div><span>العدد المتوقع</span><strong>{esc(format_number(prediction))}</strong></div>
-            <div><span>أفضل يوم بديل</span><strong>{esc(best_label)}</strong></div>
-        </div>
+        <div class="best-note">تم اختياره لأنه الأقل ازدحامًا ضمن الأيام السبعة القريبة.</div>
     </div>
     """)
 
@@ -706,13 +713,15 @@ H("""
     --green-900:#0A352E;
     --green-800:#104B40;
     --green-700:#0F6E52;
+    --green-600:#0F8B5F;
     --gold-700:#A87312;
     --gold-500:#C7A35A;
+    --gold-200:#EFE1B8;
     --cream-50:#FCFAF4;
     --cream-100:#F5EFE3;
     --ink:#10241F;
     --muted:#66736D;
-    --line:rgba(199,163,90,0.24);
+    --line:rgba(199,163,90,0.28);
 }
 
 html, body, [class*="css"] {
@@ -722,9 +731,10 @@ html, body, [class*="css"] {
 
 .stApp {
     background:
-      radial-gradient(circle at 15% 8%, rgba(199,163,90,0.09), transparent 24%),
-      radial-gradient(circle at 90% 9%, rgba(15,110,82,0.08), transparent 24%),
-      linear-gradient(180deg, #fbfaf5 0%, #f4efe6 100%);
+      radial-gradient(circle at 12% 7%, rgba(199,163,90,0.13), transparent 24%),
+      radial-gradient(circle at 90% 10%, rgba(15,110,82,0.12), transparent 24%),
+      radial-gradient(circle at 50% 100%, rgba(15,110,82,0.06), transparent 30%),
+      linear-gradient(180deg, #FBFAF5 0%, #F3EDE1 100%);
 }
 
 .stApp::before {
@@ -732,108 +742,598 @@ html, body, [class*="css"] {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    opacity: 0.025;
+    opacity: 0.055;
     background-image:
       linear-gradient(30deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
+      linear-gradient(150deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
+      linear-gradient(30deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45)),
       linear-gradient(150deg, rgba(8,46,40,0.45) 12%, transparent 12.5%, transparent 87%, rgba(8,46,40,0.45) 87.5%, rgba(8,46,40,0.45));
-    background-size: 92px 160px;
+    background-size: 82px 142px;
+    background-position: 0 0, 0 0, 41px 71px, 41px 71px;
     z-index: 0;
 }
 
-.stApp > * { position: relative; z-index: 1; }
-#MainMenu, footer, header { visibility: hidden; }
+.stApp > * {
+    position: relative;
+    z-index: 1;
+}
+
+#MainMenu, footer, header {
+    visibility: hidden;
+}
+
+/* Hide Streamlit sidebar completely for a full executive layout */
+section[data-testid="stSidebar"] {
+    display: none !important;
+}
 
 .block-container {
-    max-width: 1320px !important;
-    padding-top: 0.9rem !important;
-    padding-bottom: 1.5rem !important;
+    max-width: 1360px !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1.6rem !important;
 }
 
-section[data-testid="stSidebar"] {
-    width: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    background: linear-gradient(180deg, #082E28 0%, #0B3C34 100%) !important;
-    border-left: 1px solid rgba(199,163,90,0.30) !important;
-    box-shadow: -10px 0 28px rgba(8,46,40,0.10);
+/* Premium top navigation */
+.top-nav {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    margin: -4px 0 18px 0;
 }
 
-section[data-testid="stSidebar"] > div {
-    width: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    padding-top: 1.2rem !important;
+div[data-testid="stHorizontalBlock"] {
+    gap: 0.85rem !important;
 }
 
-.sidebar-wrap { text-align:center; padding: 18px 8px 14px 8px; }
-.sidebar-title { color:#FFF8E8; font-size: 15px; font-weight: 900; }
-.sidebar-line { height:1px; background: linear-gradient(90deg, transparent, rgba(216,189,120,0.7), transparent); margin: 18px 20px 22px 20px; }
-
-section[data-testid="stSidebar"] .stButton { display:flex !important; justify-content:center !important; }
-section[data-testid="stSidebar"] .stButton button {
-    width: 132px !important;
-    background: rgba(255,255,255,0.055) !important;
-    color: #F7F1E3 !important;
-    border: 1px solid rgba(246,231,190,0.12) !important;
-    font-weight: 800 !important;
-    font-size: 12px !important;
-    border-radius: 14px !important;
-    height: 38px !important;
-    margin-bottom: 12px !important;
-    box-shadow: none !important;
+.nav-shell {
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(199,163,90,0.24);
+    border-radius: 22px;
+    padding: 8px;
+    box-shadow: 0 14px 32px rgba(8,46,40,0.055);
+    backdrop-filter: blur(14px);
 }
-section[data-testid="stSidebar"] .stButton button:hover { background: rgba(199,163,90,0.18) !important; }
 
 .stButton button {
     background: linear-gradient(135deg, #0F6E52, #062B25) !important;
     color: white !important;
     border: 1px solid rgba(199,163,90,0.22) !important;
-    box-shadow: 0 14px 26px rgba(8,46,40,0.13) !important;
+    outline: none !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.13) !important;
     border-radius: 16px !important;
     height: 44px !important;
     font-weight: 900 !important;
     font-size: 13px !important;
     transition: all 0.18s ease !important;
 }
-.stButton button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+.stButton button:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+    box-shadow: 0 20px 36px rgba(8,46,40,0.16) !important;
+}
+
+.stButton button:focus,
+.stButton button:active {
+    outline: none !important;
+    box-shadow: 0 16px 30px rgba(8,46,40,0.13) !important;
+}
 
 .main-header {
-    position:relative;
-    overflow:hidden;
-    background: linear-gradient(135deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96));
-    border: 1px solid rgba(199,163,90,0.34);
-    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96)),
+      radial-gradient(circle at 18% 30%, rgba(199,163,90,0.18), transparent 26%);
+    border: 1px solid rgba(199,163,90,0.38);
+    border-radius: 30px;
     padding: 20px 28px;
-    min-height: 98px;
-    box-shadow: 0 24px 54px rgba(8,46,40,0.14);
+    min-height: 108px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 28px 58px rgba(8,46,40,0.15);
     margin-bottom: 16px;
 }
+
 .main-header::before {
     content:"";
     position:absolute;
     inset:0;
-    background: radial-gradient(circle at 18% 30%, rgba(199,163,90,0.16), transparent 24%), linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.055) 44%, transparent 72%);
+    background:
+      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.06) 44%, transparent 72%);
     pointer-events:none;
 }
-.header-main-title { color:#FFF8E8; font-size:28px; font-weight:900; text-align:center; letter-spacing:-0.7px; position:relative; }
-.header-subtitle { color:#D8BD78; font-size:14px; font-weight:800; text-align:center; margin-top:8px; position:relative; }
-.header-decor { width:280px; height:2px; background:linear-gradient(90deg, transparent, #D8BD78, transparent); margin:12px auto 0 auto; position:relative; }
 
-.form-shell, .hero-box, .section-box, .metric-card, .reco-box, .best-card, .suggest-box, .summary-card, .level-hero {
+.header-main-title {
+    color: #FFF8E8;
+    font-size: 28px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing:-0.7px;
+}
+
+.header-subtitle {
+    color: #D8BD78;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.header-decor {
+    width: 300px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D8BD78, transparent);
+    margin: 12px auto 0 auto;
+}
+
+.header-logo-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(216,189,120,0.45);
+    display: grid;
+    place-items: center;
+    color:#F6E7BE;
+    font-size: 21px;
+    font-weight:900;
+    box-shadow: inset 0 0 26px rgba(216,189,120,0.07);
+}
+
+.hero-box {
+    position:relative;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,251,242,0.80));
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    padding: 38px 36px;
+    text-align:center;
+    margin-bottom: 18px;
+    box-shadow: 0 26px 60px rgba(8,46,40,0.075);
     backdrop-filter: blur(14px);
 }
 
-.form-shell, .hero-box {
-    background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,251,242,0.78)) !important;
-    border:1px solid rgba(201,169,95,0.28) !important;
-    border-radius:30px !important;
-    box-shadow: 0 24px 54px rgba(8,46,40,0.07);
+.hero-box::after {
+    content:"";
+    position:absolute;
+    width:280px;
+    height:280px;
+    border-radius:50%;
+    background:rgba(15,110,82,0.055);
+    left:-100px;
+    bottom:-135px;
 }
-.form-shell { padding:30px 34px !important; }
-.form-title { text-align:center; color:#062B25; font-size:28px; font-weight:900; letter-spacing:-0.6px; }
-.form-sub { text-align:center; color:#A87312; font-size:13px; font-weight:900; margin-top:8px; }
-.form-line { width:280px; height:2px; background:linear-gradient(90deg, transparent, #C7A35A, transparent); margin:14px auto 18px auto; }
-.form-section { width:fit-content; margin:0 auto 5px auto; color:#0F6E52; background:rgba(15,110,82,0.075); border:1px solid rgba(15,110,82,0.12); border-radius:999px; padding:7px 18px; font-size:13px; font-weight:900; }
+
+.hero-kicker {
+    width:fit-content;
+    margin:0 auto 12px auto;
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(15,110,82,0.075);
+    color:#0F6E52;
+    border:1px solid rgba(15,110,82,0.12);
+    font-size:12px;
+    font-weight:900;
+}
+
+.hero-title {
+    color:#062B25;
+    font-size:34px;
+    font-weight:900;
+    letter-spacing:-1px;
+}
+
+.hero-sub {
+    color:#A87312;
+    font-size:15px;
+    font-weight:900;
+    margin-top:10px;
+}
+
+.hero-text {
+    color:#465651;
+    font-size:14px;
+    font-weight:700;
+    margin:16px auto 0 auto;
+    line-height:1.95;
+    max-width:780px;
+}
+
+.feature-card {
+    position:relative;
+    overflow:hidden;
+    background: rgba(255,255,255,0.74);
+    border: 1px solid rgba(201,169,95,0.24);
+    border-radius: 24px;
+    padding: 24px 20px;
+    text-align:right;
+    box-shadow: 0 22px 45px rgba(8,46,40,0.055);
+    min-height: 136px;
+    backdrop-filter: blur(12px);
+    transition:0.18s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 28px 58px rgba(8,46,40,0.075);
+}
+
+.feature-icon {
+    width:40px;
+    height:40px;
+    border-radius:15px;
+    display:grid;
+    place-items:center;
+    background:rgba(8,46,40,0.06);
+    border:1px solid rgba(199,163,90,0.28);
+    color:#A87312;
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:12px;
+}
+
+.feature-title {
+    color:#062B25;
+    font-weight:900;
+    font-size:17px;
+}
+
+.feature-desc {
+    color:#64706B;
+    font-weight:700;
+    font-size:12px;
+    margin-top:8px;
+    line-height:1.75;
+}
+
+/* Main prediction KPI */
+.main-kpi-card {
+    position:relative;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg, rgba(6,43,37,0.98), rgba(15,110,82,0.94));
+    border: 1px solid rgba(216,189,120,0.38);
+    border-radius: 30px;
+    padding: 28px 34px;
+    min-height: 222px;
+    text-align: center;
+    box-shadow: 0 30px 66px rgba(8,46,40,0.18);
+}
+
+.main-kpi-card::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(216,189,120,0.18), transparent 26%),
+      linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.055) 48%, transparent 72%);
+    pointer-events:none;
+}
+
+.main-kpi-kicker {
+    width:fit-content;
+    margin:0 auto 12px auto;
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.08);
+    color:#F5E7C2;
+    border:1px solid rgba(245,231,194,0.18);
+    font-size:12px;
+    font-weight:900;
+}
+
+.main-kpi-number {
+    color:#FFFFFF;
+    font-size:64px;
+    font-weight:900;
+    line-height:1.05;
+    letter-spacing:-2px;
+}
+
+.main-kpi-label {
+    color:#D8BD78;
+    font-size:15px;
+    font-weight:900;
+    margin-top:10px;
+}
+
+.main-kpi-meta {
+    margin-top:18px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.main-kpi-meta span {
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.08);
+    color:#F7F1E3;
+    border:1px solid rgba(255,255,255,0.09);
+    font-size:11px;
+    font-weight:800;
+}
+
+.metric-card {
+    position:relative;
+    overflow:hidden;
+    border: 1px solid rgba(201,169,95,0.28);
+    border-radius: 22px;
+    padding: 14px 16px;
+    min-height: 112px;
+    text-align: right;
+    backdrop-filter: blur(14px);
+    transition:0.18s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 46px rgba(8,46,40,0.08) !important;
+}
+
+.metric-label {
+    color:#68766F;
+    font-size:12px;
+    font-weight:900;
+}
+
+.metric-value {
+    font-size:25px;
+    font-weight:900;
+    line-height:1.18;
+    margin-top:12px;
+    letter-spacing:-0.5px;
+}
+
+.metric-subtitle {
+    color:#6D756F;
+    font-size:11px;
+    font-weight:800;
+    margin-top:6px;
+}
+
+.metric-accent {
+    position:absolute;
+    right:0;
+    bottom:0;
+    height:4px;
+    width:100%;
+    opacity:0.65;
+}
+
+.reco-box {
+    position:relative;
+    overflow:hidden;
+    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.82));
+    border: 1px solid rgba(201,169,95,0.34);
+    border-radius: 24px;
+    padding: 14px 24px;
+    box-shadow: 0 18px 38px rgba(8,46,40,0.065);
+    backdrop-filter: blur(14px);
+}
+
+.reco-label {
+    text-align:center;
+    color:#786A4E;
+    font-size:11px;
+    font-weight:900;
+}
+
+.reco-title {
+    text-align:center;
+    font-size:23px;
+    font-weight:900;
+    margin-top:3px;
+    letter-spacing:-0.5px;
+}
+
+.reco-line {
+    width:132px;
+    height:2px;
+    background: linear-gradient(90deg, transparent, #C7A35A, transparent);
+    margin:7px auto 8px auto;
+}
+
+.reco-text {
+    text-align:center;
+    color:#31413B;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.75;
+    max-width:1000px;
+    margin:auto;
+}
+
+.small-pill {
+    background: rgba(255,255,255,0.84);
+    border: 1px solid rgba(201,169,95,0.32);
+    color:#5D5138;
+    border-radius: 999px;
+    padding: 8px 14px;
+    min-height: 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-size:11px;
+    font-weight:900;
+    box-shadow:0 12px 28px rgba(8,46,40,0.05);
+    backdrop-filter: blur(12px);
+}
+
+.pill-icon {
+    min-width:30px;
+    height:24px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(15,110,82,0.08);
+    color:#0F6E52;
+    font-size:10px;
+    font-weight:900;
+    padding:0 8px;
+}
+
+.section-box {
+    background: rgba(255,255,255,0.74);
+    border: 1px solid rgba(201,169,95,0.23);
+    border-radius: 24px;
+    padding: 14px 18px;
+    box-shadow: 0 18px 40px rgba(8,46,40,0.055);
+    height: 100%;
+    backdrop-filter: blur(12px);
+}
+
+.section-title {
+    text-align:right;
+    color:#062B25;
+    font-size:16px;
+    font-weight:900;
+}
+
+.section-line {
+    width:92px;
+    height:2px;
+    background: linear-gradient(90deg, #C7A35A, transparent);
+    margin: 8px 0 8px auto;
+}
+
+.suggest-box {
+    background: linear-gradient(180deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96));
+    border: 1px solid rgba(199,163,90,0.34);
+    border-radius: 28px;
+    padding: 26px 22px;
+    text-align:center;
+    box-shadow: 0 24px 52px rgba(8,46,40,0.18);
+}
+
+.side-suggest-box {
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 18px;
+}
+
+.suggest-title {
+    color:#FFF8E8;
+    font-size:24px;
+    font-weight:900;
+    text-align:center;
+    letter-spacing:-0.5px;
+}
+
+.suggest-sub {
+    color:#D8BD78;
+    font-size:12px;
+    font-weight:800;
+    margin-top:12px;
+    line-height:1.95;
+}
+
+.best-card {
+    background: linear-gradient(135deg, rgba(236,247,240,0.98), rgba(255,255,255,0.92));
+    border: 1px solid rgba(15,139,95,0.22);
+    border-radius: 26px;
+    padding: 20px 16px;
+    margin-top: 14px;
+    text-align: center;
+    box-shadow: 0 20px 42px rgba(15,139,95,0.10);
+    backdrop-filter: blur(12px);
+}
+
+.best-kicker {
+    width:fit-content;
+    margin:0 auto 8px auto;
+    padding:5px 12px;
+    border-radius:999px;
+    background:rgba(15,139,95,0.08);
+    color:#0F8B5F;
+    font-size:10px;
+    font-weight:900;
+}
+
+.best-title {
+    color: #062B25;
+    font-size: 25px;
+    font-weight: 900;
+    line-height: 1.5;
+}
+
+.best-meta {
+    margin-top: 8px;
+    color: #53615B;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.9;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.best-meta strong {
+    color: #062B25;
+    font-weight: 900;
+}
+
+.best-note {
+    margin-top:10px;
+    color:#0F6E52;
+    font-size:11px;
+    font-weight:800;
+    line-height:1.7;
+}
+
+.form-shell {
+    background: linear-gradient(135deg, rgba(255,255,255,0.90), rgba(255,251,242,0.80)) !important;
+    border:1px solid rgba(201,169,95,0.30) !important;
+    border-radius: 30px !important;
+    padding: 30px 34px !important;
+    box-shadow: 0 26px 58px rgba(8,46,40,0.075);
+    backdrop-filter: blur(14px);
+}
+
+.form-title {
+    text-align:center;
+    color:#062B25;
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:-0.6px;
+}
+
+.form-sub {
+    text-align:center;
+    color:#A87312;
+    font-size:13px;
+    font-weight:900;
+    margin-top:8px;
+}
+
+.form-line {
+    width:280px;
+    height:2px;
+    background:linear-gradient(90deg, transparent, #C7A35A, transparent);
+    margin:14px auto 18px auto;
+}
+
+.form-section {
+    width:fit-content;
+    margin: 0 auto 5px auto;
+    color:#0F6E52;
+    background:rgba(15,110,82,0.075);
+    border:1px solid rgba(15,110,82,0.12);
+    border-radius:999px;
+    padding:7px 18px;
+    font-size:13px;
+    font-weight:900;
+}
 
 .stTextInput input, .stSelectbox > div > div {
     background:#FFFEFA !important;
@@ -843,162 +1343,121 @@ section[data-testid="stSidebar"] .stButton button:hover { background: rgba(199,1
     box-shadow:0 12px 28px rgba(8,46,40,0.035);
 }
 
-div[data-testid="stHorizontalBlock"] { gap:0.85rem !important; }
 
-.level-hero {
-    position:relative;
-    overflow:hidden;
-    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.82));
-    border:1px solid rgba(201,169,95,0.30);
-    border-radius:32px;
-    padding:30px 32px;
-    min-height:220px;
-    box-shadow:0 30px 64px rgba(8,46,40,0.12);
-    text-align:center;
+.nav-caption {
+    width: fit-content;
+    margin: -4px auto 8px auto;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.50);
+    border: 1px solid rgba(199,163,90,0.18);
+    color: rgba(8,46,40,0.62);
+    font-size: 10px;
+    font-weight: 900;
+    backdrop-filter: blur(10px);
 }
-.level-hero::before {
-    content:"";
-    position:absolute;
-    inset:0;
-    background: radial-gradient(circle at 18% 20%, var(--level-bg), transparent 38%);
-    opacity:0.75;
-}
-.level-kicker { position:relative; width:fit-content; margin:0 auto 10px auto; padding:7px 16px; border-radius:999px; background:rgba(8,46,40,0.055); color:#66736D; font-size:12px; font-weight:900; }
-.level-value { position:relative; font-size:72px; font-weight:900; line-height:1.05; letter-spacing:-2px; }
-.level-meta { position:relative; margin-top:18px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
-.level-meta span { padding:7px 12px; border-radius:999px; background:rgba(255,255,255,0.72); color:#33433d; border:1px solid rgba(201,169,95,0.20); font-size:11px; font-weight:800; }
 
-.metric-card {
-    position:relative;
-    overflow:hidden;
-    border:1px solid rgba(201,169,95,0.28);
-    border-radius:26px;
-    padding:16px 17px;
-    min-height:118px;
-    box-shadow:0 18px 36px rgba(8,46,40,0.055);
-    transition:0.18s ease;
-}
-.metric-card:hover { transform: translateY(-3px); box-shadow:0 24px 46px rgba(8,46,40,0.08) !important; }
-.metric-label { color:#68766F; font-size:12px; font-weight:900; }
-.metric-value { font-size:27px; font-weight:900; line-height:1.18; margin-top:12px; letter-spacing:-0.5px; }
-.metric-subtitle { color:#6D756F; font-size:11px; font-weight:800; margin-top:7px; }
-.metric-accent { position:absolute; right:0; bottom:0; height:4px; width:100%; opacity:0.65; }
-
-.reco-box {
-    background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,251,242,0.82));
-    border:1px solid rgba(201,169,95,0.30);
-    border-radius:26px;
-    padding:14px 22px;
-    box-shadow:0 18px 38px rgba(8,46,40,0.06);
-}
-.reco-label { text-align:center; color:#786A4E; font-size:11px; font-weight:900; }
-.reco-title { text-align:center; font-size:24px; font-weight:900; margin-top:3px; letter-spacing:-0.5px; }
-.reco-line { width:132px; height:2px; background:linear-gradient(90deg, transparent, #C7A35A, transparent); margin:7px auto 8px auto; }
-.reco-text { text-align:center; color:#31413B; font-size:13px; font-weight:700; line-height:1.75; max-width:1000px; margin:auto; }
-
-.summary-card {
-    margin-top:10px;
-    background: rgba(255,255,255,0.76);
-    border:1px solid rgba(201,169,95,0.24);
-    border-radius:24px;
-    padding:16px 18px;
-    box-shadow:0 18px 38px rgba(8,46,40,0.05);
-}
-.summary-title { color:#062B25; font-size:14px; font-weight:900; margin-bottom:10px; text-align:right; }
-.summary-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
-.summary-grid div { background:rgba(255,255,255,0.68); border:1px solid rgba(201,169,95,0.18); border-radius:18px; padding:10px 12px; }
-.summary-grid span { display:block; color:#68766F; font-size:11px; font-weight:800; }
-.summary-grid strong { display:block; color:#062B25; font-size:16px; font-weight:900; margin-top:4px; }
-
-.section-box {
-    background:rgba(255,255,255,0.74);
-    border:1px solid rgba(201,169,95,0.22);
-    border-radius:26px;
-    padding:14px 18px;
-    box-shadow:0 18px 40px rgba(8,46,40,0.055);
-}
-.section-title { text-align:right; color:#062B25; font-size:16px; font-weight:900; }
-.section-line { width:92px; height:2px; background:linear-gradient(90deg, #C7A35A, transparent); margin:8px 0 8px auto; }
-
-.suggest-box {
-    background:linear-gradient(180deg, rgba(6,43,37,0.98), rgba(16,75,64,0.96));
-    border:1px solid rgba(199,163,90,0.34);
-    border-radius:28px;
-    padding:22px 20px;
-    text-align:center;
-    box-shadow:0 24px 52px rgba(8,46,40,0.16);
-}
-.side-suggest-box { min-height:145px; display:flex; flex-direction:column; justify-content:center; margin-top:18px; }
-.suggest-title { color:#FFF8E8; font-size:21px; font-weight:900; text-align:center; }
-.suggest-sub { color:#D8BD78; font-size:12px; font-weight:800; margin-top:10px; line-height:1.8; }
-
-.best-card {
-    background:linear-gradient(135deg, rgba(236,247,240,0.98), rgba(255,255,255,0.92));
-    border:1px solid rgba(15,139,95,0.22);
-    border-radius:26px;
-    padding:18px 16px;
-    margin-top:14px;
-    text-align:center;
-    box-shadow:0 20px 42px rgba(15,139,95,0.10);
-}
-.best-kicker { width:fit-content; margin:0 auto 8px auto; padding:5px 12px; border-radius:999px; background:rgba(15,139,95,0.08); color:#0F8B5F; font-size:10px; font-weight:900; }
-.best-title { color:#062B25; font-size:25px; font-weight:900; line-height:1.5; }
-.best-meta { margin-top:8px; color:#53615B; font-size:12px; font-weight:800; line-height:1.9; display:flex; flex-direction:column; gap:2px; }
-.best-meta strong { color:#062B25; font-weight:900; }
-.best-note { margin-top:10px; color:#0F6E52; font-size:11px; font-weight:800; line-height:1.7; }
-
-.small-pill { background:rgba(255,255,255,0.84); border:1px solid rgba(201,169,95,0.32); color:#5D5138; border-radius:999px; padding:8px 14px; min-height:34px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:11px; font-weight:900; box-shadow:0 12px 28px rgba(8,46,40,0.05); }
-.pill-icon { min-width:30px; height:24px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:rgba(15,110,82,0.08); color:#0F6E52; font-size:10px; font-weight:900; padding:0 8px; }
-
-@media (max-width:900px) {
-    section[data-testid="stSidebar"] { width:145px !important; min-width:145px !important; max-width:145px !important; }
-    .header-main-title { font-size:21px; }
-    .level-value { font-size:48px; }
-    .summary-grid { grid-template-columns:1fr; }
+@media (max-width: 900px) {
+    .header-main-title { font-size: 21px; }
+    .hero-title { font-size: 26px; }
+    .main-kpi-number { font-size: 46px; }
+    .metric-value { font-size: 24px; }
 }
 </style>
 """)
 
 
+
 def show_header():
     H("""
     <div class="main-header">
-        <div class="header-main-title">التنبؤ بمستويات الازدحام وتوصية أوقات الزيارة</div>
-        <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
-        <div class="header-decor"></div>
+        <div class="header-logo-box">◇</div>
+        <div style="flex:1;">
+            <div class="header-main-title">نظام ذكي للتنبؤ بمستويات ازدحام المعتمرين</div>
+            <div class="header-subtitle">تحليل تنبؤي وتوصية بأفضل أوقات أداء العمرة</div>
+            <div class="header-decor"></div>
+        </div>
     </div>
     """)
 
 
+def render_nav():
+    H('<div class="nav-caption">التنقل بين أقسام النظام</div>')
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("الرئيسية", use_container_width=True):
+            st.session_state.page = "home"
+            st.rerun()
+    with c2:
+        if st.button("إدخال البيانات", use_container_width=True):
+            st.session_state.page = "input"
+            st.rerun()
+    with c3:
+        if st.button("لوحة النتائج", use_container_width=True):
+            st.session_state.page = "dashboard"
+            st.rerun()
+    st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+
+
 if "page" not in st.session_state:
-    st.session_state.page = "input"
+    st.session_state.page = "home"
 
 if "entered" not in st.session_state:
     st.session_state.entered = False
 
 if "show_best_day" not in st.session_state:
-    st.session_state.show_best_day = True
+    st.session_state.show_best_day = False
 
 
-with st.sidebar:
+
+
+def home_page():
+    show_header()
+    render_nav()
+
     H("""
-    <div class="sidebar-wrap">
-        <div class="sidebar-title">نظام التنبؤ</div>
-        <div class="sidebar-line"></div>
+    <div class="hero-box">
+        <div class="hero-kicker">نظام تنبؤ وتوصية</div>
+        <div class="hero-title">توقع الازدحام قبل الوصول</div>
+        <div class="hero-sub">قراءة ذكية للأيام القادمة لاختيار وقت أداء العمرة الأنسب</div>
+        <div class="hero-text">
+            يعرض النظام العدد المتوقع للمعتمرين، ومستوى الازدحام، والتوصية المناسبة بناءً على التنبؤات اليومية
+            والمقارنة بين الأيام القريبة في المسجد الحرام.
+        </div>
     </div>
     """)
 
-    if st.button("إدخال البيانات"):
-        st.session_state.page = "input"
-        st.rerun()
+    c1, c2, c3 = st.columns(3)
 
-    if st.button("لوحة النتائج"):
-        st.session_state.page = "dashboard"
-        st.rerun()
+    cards = [
+        ("01", "تنبؤ يومي", "تقدير العدد المتوقع للمعتمرين."),
+        ("02", "تصنيف الازدحام", "تحويل التوقعات إلى مستويات واضحة."),
+        ("03", "توصية عملية", "اقتراح يوم بديل عند ارتفاع الازدحام."),
+    ]
+
+    for col, (icon, title, desc) in zip([c1, c2, c3], cards):
+        with col:
+            H(f"""
+            <div class="feature-card">
+                <div class="feature-icon">{esc(icon)}</div>
+                <div class="feature-title">{esc(title)}</div>
+                <div class="feature-desc">{esc(desc)}</div>
+            </div>
+            """)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    _, mid, _ = st.columns([1, 1.05, 1])
+
+    with mid:
+        if st.button("بدء التنبؤ", use_container_width=True):
+            st.session_state.page = "input"
+            st.rerun()
 
 
 def input_page():
     show_header()
+    render_nav()
 
     df_dates = load_data()
 
@@ -1071,7 +1530,7 @@ def input_page():
             return
 
         st.session_state.entered = True
-        st.session_state.show_best_day = True
+        st.session_state.show_best_day = False
         st.session_state.selected_name = name.strip()
         st.session_state.selected_nationality = nationality
         st.session_state.selected_month = normalize_month_name(month)
@@ -1082,6 +1541,7 @@ def input_page():
 
 def dashboard_page():
     show_header()
+    render_nav()
 
     if not st.session_state.entered:
         st.warning("الرجاء إدخال البيانات أولًا.")
@@ -1129,19 +1589,20 @@ def dashboard_page():
 
     best_day = get_best_day(df7, day, month)
 
-    main_col, side_col = st.columns([1.45, 1], gap="large")
-    with main_col:
-        level_hero_card(crowd_level, prediction, weekday, hijri_date)
-    with side_col:
-        top_card("العدد المتوقع", format_number(prediction), "معتمر")
-        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
-        cday, ctemp = st.columns(2)
-        with cday:
-            top_card("اليوم المختار", weekday, hijri_date)
-        with ctemp:
-            top_card("درجة الحرارة", temp_text, "متوسط اليوم")
+    main_col, side_col = st.columns([1.55, 1], gap="large")
 
-    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+    with main_col:
+        main_prediction_card(format_number(prediction), crowd_level, weekday, hijri_date)
+
+    with side_col:
+        s1, s2 = st.columns(2)
+        with s1:
+            top_card("مستوى الازدحام", crowd_level, "تقدير يومي", "", crowd_level)
+        with s2:
+            top_card("اليوم المختار", weekday, hijri_date, "")
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+        top_card("درجة الحرارة", temp_text, "متوسط اليوم", "")
+    st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
 
     H(f"""
     <div class="reco-box">
@@ -1152,52 +1613,64 @@ def dashboard_page():
     </div>
     """)
 
-    quick_summary(crowd_level, prediction, best_day)
-
     if show_hajj_count or show_tawaf_ifadah:
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+
         if show_hajj_count:
             _, s1, _ = st.columns([1, 1.3, 1])
             with s1:
                 info_pill(f"عدد الحجاج المتوقع: {hajj_count}", "حج")
+
         elif show_tawaf_ifadah:
             _, s1, _ = st.columns([1, 1.3, 1])
             with s1:
                 info_pill(f"عدد طواف الإفاضة المتوقع: {tawaf_count}", "طواف")
 
-    st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-    suggest_col, chart_col = st.columns([0.9, 2.4], gap="large")
+    suggest_col, chart_col = st.columns([1, 2.25], gap="large")
 
     with suggest_col:
         H("""
         <div class="suggest-box side-suggest-box">
-            <div class="suggest-title">اليوم البديل</div>
-            <div class="suggest-sub">أقل يوم ازدحامًا ضمن الأيام السبعة القريبة.</div>
+            <div class="suggest-title">اقتراح يوم بديل</div>
+            <div class="suggest-sub">يقارن النظام الأيام السبعة القريبة ويقترح الأقل ازدحامًا عند الحاجة.</div>
         </div>
         """)
-        best_day_card(best_day, prediction)
+
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+
+        if st.button("اقتراح يوم أنسب", use_container_width=True):
+            st.session_state.show_best_day = True
+
+        if st.session_state.show_best_day:
+            best_day_card(best_day)
 
     with chart_col:
         H("""
         <div class="section-box">
-            <div class="section-title">الاتجاه المتوقع خلال الأيام السبعة القريبة</div>
+            <div class="section-title">الاتجاه المتوقع للعدد اليومي خلال 7 أيام</div>
             <div class="section-line"></div>
         </div>
         """)
-        fig = build_chart(df7, month, day, best_day)
+
+        fig = build_chart(df7, month, day)
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+
     _, mid, _ = st.columns([1, 1.2, 1])
+
     with mid:
         if st.button("إدخال تاريخ جديد", use_container_width=True):
             st.session_state.page = "input"
-            st.session_state.show_best_day = True
+            st.session_state.show_best_day = False
             st.rerun()
 
 
-if st.session_state.page == "dashboard":
-    dashboard_page()
-else:
+if st.session_state.page == "home":
+    home_page()
+elif st.session_state.page == "input":
     input_page()
+else:
+    dashboard_page()
