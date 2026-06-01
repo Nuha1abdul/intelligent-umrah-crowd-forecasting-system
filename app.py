@@ -841,133 +841,152 @@ div[data-testid="stHorizontalBlock"] {
   border: 1.5px solid rgba(196,144,63,0.30) !important;
 }
 
-/* ─── Dashboard: Crowding hero card ─── */
+/* ─── Dashboard: Main result summary ─── */
 .crowding-card {
   position: relative;
   overflow: hidden;
-  min-height: 370px;
-  padding: 38px 40px 34px;
+  min-height: 334px;
+  padding: 28px 30px;
   border-radius: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background:
-    radial-gradient(circle at 18% 20%, rgba(255,255,255,0.10) 0%, transparent 26%),
-    radial-gradient(circle at 80% 80%, rgba(0,0,0,0.12) 0%, transparent 30%),
-    linear-gradient(145deg, #042F29 0%, #074840 46%, #031E1A 100%);
-  border: 1px solid rgba(196,144,63,0.36);
-  box-shadow: 0 20px 48px rgba(5,42,36,0.20), inset 0 1px 0 rgba(255,255,255,0.09);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,252,244,0.88));
+  border: 1px solid rgba(196,144,63,0.24);
+  box-shadow: 0 16px 38px rgba(5,42,36,0.075);
+  backdrop-filter: blur(14px);
 }
-
-/* Decorative geometric panel on right side */
 .crowding-card::before {
   content: "";
   position: absolute;
-  top: 0; right: 0;
-  width: 35%;
-  height: 100%;
-  opacity: 0.10;
-  background-image:
-    linear-gradient(30deg,  rgba(196,144,63,0.60) 12%, transparent 12.5%, transparent 87%, rgba(196,144,63,0.60) 87.5%),
-    linear-gradient(150deg, rgba(196,144,63,0.60) 12%, transparent 12.5%, transparent 87%, rgba(196,144,63,0.60) 87.5%),
-    linear-gradient(30deg,  rgba(196,144,63,0.60) 12%, transparent 12.5%, transparent 87%, rgba(196,144,63,0.60) 87.5%),
-    linear-gradient(150deg, rgba(196,144,63,0.60) 12%, transparent 12.5%, transparent 87%, rgba(196,144,63,0.60) 87.5%);
-  background-size: 38px 66px;
-  background-position: 0 0, 0 0, 19px 33px, 19px 33px;
-  pointer-events: none;
+  top: 0; right: 0; left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(13,107,79,0.95), rgba(196,144,63,0.75), rgba(13,107,79,0.20));
 }
-
-/* Gold arc decoration */
 .crowding-card::after {
   content: "";
   position: absolute;
-  right: -70px;
-  bottom: -110px;
-  width: 400px;
+  width: 240px;
   height: 240px;
   border-radius: 50%;
-  border-top: 1.5px solid rgba(196,144,63,0.55);
-  transform: rotate(-15deg);
+  left: -110px;
+  bottom: -130px;
+  background: radial-gradient(circle, rgba(13,107,79,0.07), transparent 68%);
   pointer-events: none;
 }
-
 .cc-inner { position: relative; z-index: 2; width: 100%; }
-
+.cc-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
 .cc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 20px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: 999px;
-  color: #EAD49A;
-  background: rgba(255,255,255,0.09);
-  border: 1px solid rgba(255,255,255,0.16);
+  color: #0D6B4F;
+  background: rgba(13,107,79,0.07);
+  border: 1px solid rgba(13,107,79,0.14);
   font-size: 12px;
   font-weight: 900;
-  margin-bottom: 18px;
-  letter-spacing: 0.2px;
 }
 .cc-badge-dot {
   width: 7px; height: 7px;
   border-radius: 50%;
   background: #C4903F;
-  box-shadow: 0 0 8px 3px rgba(196,144,63,0.36);
+  box-shadow: 0 0 0 4px rgba(196,144,63,0.14);
   display: inline-block;
 }
-
-.cc-level {
-  font-size: 82px;
-  font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -1px;
-  text-shadow: 0 14px 34px rgba(0,0,0,0.18);
-  margin-bottom: 10px;
-}
-
 .cc-label {
-  color: #D8B870;
-  font-size: 16px;
+  color: #607068;
+  font-size: 12px;
   font-weight: 800;
-  margin-bottom: 22px;
 }
-
-.cc-rule {
-  width: 200px;
-  height: 1px;
-  margin: 0 auto 20px;
-  background: linear-gradient(90deg, transparent, rgba(196,144,63,0.70), transparent);
-}
-
-.cc-stats {
-  display: flex;
+.cc-level-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
-
-.cc-stat {
-  padding: 10px 18px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.09);
-  border: 1px solid rgba(255,255,255,0.13);
-  min-width: 130px;
+.cc-level-box {
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: #FFFFFF;
+  border: 1px solid rgba(8,64,56,0.08);
+  box-shadow: inset 0 -2px 0 rgba(196,144,63,0.18);
+}
+.cc-level-caption {
+  color: #607068;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.cc-level {
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.8px;
+  margin: 0;
+}
+.cc-level-note {
+  color: #4E6158;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.8;
+  margin-top: 8px;
+}
+.cc-mini-status {
+  min-width: 154px;
+  padding: 18px 18px;
+  border-radius: 18px;
+  background: rgba(250,246,238,0.82);
+  border: 1px solid rgba(196,144,63,0.22);
   text-align: center;
 }
-.cc-stat-label {
-  color: rgba(255,248,236,0.62);
-  font-size: 10.5px;
-  font-weight: 700;
-  margin-bottom: 4px;
+.cc-mini-label {
+  color: #7A6A4C;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 8px;
 }
-.cc-stat-value {
-  color: #FFF8EC;
+.cc-mini-value {
+  color: #052A24;
   font-size: 18px;
   font-weight: 900;
-  line-height: 1.2;
+  line-height: 1.35;
+}
+.cc-rule {
+  width: 100%;
+  height: 1px;
+  margin: 4px 0 18px;
+  background: linear-gradient(90deg, rgba(196,144,63,0.30), rgba(13,107,79,0.12), transparent);
+}
+.cc-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.cc-stat {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(8,64,56,0.08);
+  text-align: right;
+}
+.cc-stat-label {
+  color: #607068;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.cc-stat-value {
+  color: #052A24;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 /* ─── Dashboard: Side metric cards ─── */
@@ -1074,15 +1093,13 @@ div[data-testid="stHorizontalBlock"] {
 .suggest-card {
   position: relative;
   overflow: hidden;
-  padding: 26px 22px;
+  padding: 24px 22px;
   border-radius: 22px;
   text-align: center;
-  background:
-    radial-gradient(circle at 18% 18%, rgba(196,144,63,0.16) 0%, transparent 30%),
-    linear-gradient(160deg, #031E1A 0%, #074840 54%, #031E1A 100%);
-  border: 1px solid rgba(196,144,63,0.32);
-  box-shadow: 0 20px 48px rgba(5,42,36,0.18);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,252,244,0.84));
+  border: 1px solid rgba(196,144,63,0.24);
+  box-shadow: 0 14px 30px rgba(5,42,36,0.06);
+  backdrop-filter: blur(14px);
   min-height: 180px;
   display: flex;
   flex-direction: column;
@@ -1091,16 +1108,13 @@ div[data-testid="stHorizontalBlock"] {
 .suggest-card::before {
   content: "";
   position: absolute;
-  inset: 0;
-  opacity: 0.08;
-  background-image:
-    linear-gradient(60deg,  rgba(255,255,255,0.30) 1px, transparent 1px),
-    linear-gradient(120deg, rgba(196,144,63,0.30) 1px, transparent 1px);
-  background-size: 32px 32px;
+  top: 0; right: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(13,107,79,0.85), rgba(196,144,63,0.70), transparent);
 }
 .suggest-inner { position: relative; z-index: 2; }
-.suggest-title { color: #FFF8EC; font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
-.suggest-sub   { color: #D8B870; font-size: 12px; font-weight: 700; line-height: 1.9; margin-top: 10px; }
+.suggest-title { color: #052A24; font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
+.suggest-sub   { color: #607068; font-size: 12px; font-weight: 700; line-height: 1.9; margin-top: 10px; }
 
 .best-day-card {
   margin-top: 12px;
@@ -1166,7 +1180,9 @@ div[data-testid="stHorizontalBlock"] {
 /* ─── Responsive ─── */
 @media (max-width: 900px) {
   .header-title { font-size: 22px; }
-  .cc-level { font-size: 52px; }
+  .cc-level { font-size: 40px; }
+  .cc-level-wrap { grid-template-columns: 1fr; }
+  .cc-stats { grid-template-columns: 1fr; }
   .crowding-card { min-height: 260px; }
   .metric-card { height: auto; min-height: 90px; }
   .metric-value { font-size: 22px; }
@@ -1213,9 +1229,39 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
     H(f"""
     <div class="crowding-card">
       <div class="cc-inner">
-        <div class="cc-level" style="color:{color};">{esc(level)}</div>
-        <div class="cc-label">مستوى الازدحام المتوقع</div>
-        
+        <div class="cc-topline">
+          <div class="cc-badge"><span class="cc-badge-dot"></span> ملخص التوقع</div>
+          <div class="cc-label">يعتمد العرض على اليوم الهجري المختار</div>
+        </div>
+
+        <div class="cc-level-wrap">
+          <div class="cc-level-box">
+            <div class="cc-level-caption">مستوى الازدحام المتوقع</div>
+            <div class="cc-level" style="color:{color};">{esc(level)}</div>
+            <div class="cc-level-note">قراءة مختصرة تساعد في اتخاذ قرار الزيارة بسرعة.</div>
+          </div>
+          <div class="cc-mini-status">
+            <div class="cc-mini-label">العدد المتوقع</div>
+            <div class="cc-mini-value">{esc(prediction_text)}</div>
+          </div>
+        </div>
+
+        <div class="cc-rule"></div>
+
+        <div class="cc-stats">
+          <div class="cc-stat">
+            <div class="cc-stat-label">اليوم المختار</div>
+            <div class="cc-stat-value">{esc(weekday)}</div>
+          </div>
+          <div class="cc-stat">
+            <div class="cc-stat-label">التاريخ الهجري</div>
+            <div class="cc-stat-value">{esc(hijri_date)}</div>
+          </div>
+          <div class="cc-stat">
+            <div class="cc-stat-label">وحدة القياس</div>
+            <div class="cc-stat-value">معتمر</div>
+          </div>
+        </div>
       </div>
     </div>
     """)
@@ -1446,11 +1492,11 @@ def dashboard_page():
         crowding_hero_card(level, pred_text, weekday, hijri_date)
 
     with right_col:
-        metric_card("اليوم المختار",  weekday,   hijri_date, "📅")
-        H("<div style='height:10px;'></div>")
-        metric_card("العدد المتوقع",  pred_text, "معتمر",    "👥")
-        H("<div style='height:10px;'></div>")
         metric_card("درجة الحرارة",   temp_text, "متوسط اليوم", "🌡")
+        H("<div style='height:10px;'></div>")
+        metric_card("الشهر الهجري",  month, "الشهر المختار",    "◌")
+        H("<div style='height:10px;'></div>")
+        metric_card("الجنسية",   st.session_state.selected_nationality, "حسب الإدخال", "◇")
 
     H("<div style='height:12px;'></div>")
 
