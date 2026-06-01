@@ -485,21 +485,22 @@ H("""
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --gov-green-950: #06251F;
-  --gov-green-900: #0B332B;
-  --gov-green-800: #124236;
-  --gov-green-700: #17664F;
-  --gov-green-600: #1C7A5D;
-  --gov-gold: #B68A35;
-  --gov-gold-soft: #D8C08A;
-  --gov-cream: #F8F4EA;
-  --gov-paper: #FFFFFF;
-  --gov-border: #E5D9BC;
-  --gov-border-green: rgba(18,66,54,0.16);
-  --gov-text: #10251F;
-  --gov-muted: #68756F;
-  --gov-shadow: 0 10px 28px rgba(6,37,31,0.08);
-  --gov-shadow-soft: 0 6px 18px rgba(6,37,31,0.06);
+  --primary: #006C4E;
+  --primary-dark: #014D40;
+  --primary-soft: #EAF5F1;
+  --mint: #F6FBF9;
+  --bg: #F7F8F6;
+  --surface: #FFFFFF;
+  --surface-2: #FBFCFB;
+  --border: #DDE7E2;
+  --border-2: #EDF1EF;
+  --text: #172B24;
+  --muted: #61736B;
+  --muted-2: #8A9992;
+  --warning: #B7791F;
+  --danger: #B42318;
+  --shadow: 0 10px 28px rgba(21, 35, 31, 0.055);
+  --shadow-2: 0 18px 42px rgba(21, 35, 31, 0.075);
 }
 
 html, body, [class*="css"] {
@@ -513,29 +514,15 @@ section[data-testid="stSidebar"] { display: none !important; }
 
 .stApp {
   background:
-    linear-gradient(180deg, rgba(6,37,31,0.035), rgba(255,255,255,0) 210px),
-    repeating-linear-gradient(135deg, rgba(18,66,54,0.025) 0 1px, transparent 1px 22px),
-    #F8F4EA;
-  color: var(--gov-text);
+    linear-gradient(180deg, rgba(0,108,78,0.035) 0%, rgba(247,248,246,0.0) 260px),
+    var(--bg);
+  color: var(--text);
 }
-
-.stApp::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 85% 0%, rgba(182,138,53,0.12), transparent 260px),
-    radial-gradient(circle at 10% 10%, rgba(23,102,79,0.08), transparent 300px);
-  z-index: 0;
-}
-
-.stApp > * { position: relative; z-index: 1; }
 
 .block-container {
-  max-width: 1280px !important;
+  max-width: 1220px !important;
   padding-top: 1.1rem !important;
-  padding-bottom: 2rem !important;
+  padding-bottom: 2.2rem !important;
 }
 
 div[data-testid="stHorizontalBlock"] {
@@ -543,566 +530,449 @@ div[data-testid="stHorizontalBlock"] {
   align-items: stretch !important;
 }
 
-/* Buttons */
+/* Streamlit controls */
 .stButton button {
-  background: #FFFFFF !important;
-  color: var(--gov-green-900) !important;
-  border: 1px solid rgba(18,66,54,0.18) !important;
+  background: var(--surface) !important;
+  color: var(--primary-dark) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 10px !important;
-  min-height: 44px !important;
-  height: 44px !important;
+  min-height: 42px !important;
   font-size: 13px !important;
   font-weight: 800 !important;
-  box-shadow: 0 3px 10px rgba(6,37,31,0.04) !important;
-  transition: all .18s ease !important;
+  box-shadow: none !important;
+  transition: all .16s ease !important;
 }
-
 .stButton button:hover {
-  color: #FFFFFF !important;
-  background: linear-gradient(135deg, var(--gov-green-800), var(--gov-green-900)) !important;
-  border-color: rgba(182,138,53,0.40) !important;
+  background: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary) !important;
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(6,37,31,0.12) !important;
 }
-
 .stButton button:focus, .stButton button:active {
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(23,102,79,0.12) !important;
+  box-shadow: 0 0 0 3px rgba(0,108,78,.12) !important;
 }
 
-/* Header */
-.site-header {
-  position: relative;
-  overflow: hidden;
-  min-height: 106px;
-  padding: 22px 34px;
-  margin-bottom: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(216,192,138,0.34);
-  background:
-    linear-gradient(90deg, rgba(182,138,53,0.12), transparent 24%, transparent 74%, rgba(182,138,53,0.10)),
-    linear-gradient(135deg, #06251F 0%, #124236 56%, #0B332B 100%);
-  box-shadow: var(--gov-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.site-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: .10;
-  background-image:
-    linear-gradient(45deg, rgba(255,255,255,.55) 1px, transparent 1px),
-    linear-gradient(-45deg, rgba(216,192,138,.40) 1px, transparent 1px);
-  background-size: 34px 34px;
-}
-
-.site-header::after {
-  content: "";
-  position: absolute;
-  right: 24px;
-  left: 24px;
-  bottom: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gov-gold), transparent);
-}
-
-.header-inner { position: relative; z-index: 2; }
-.header-title {
-  color: #FFFFFF;
-  font-size: 30px;
-  font-weight: 900;
-  letter-spacing: -0.7px;
-  line-height: 1.25;
-}
-.header-sub {
-  color: #E6D3A5;
-  font-size: 13.5px;
-  font-weight: 700;
-  margin-top: 7px;
-}
-.header-rule {
-  width: 210px;
-  height: 1px;
-  margin: 12px auto 0;
-  background: linear-gradient(90deg, transparent, rgba(230,211,165,.9), transparent);
-}
-
-.nav-label { display: none; }
-
-/* Home */
-.hero-box {
-  position: relative;
-  overflow: hidden;
-  padding: 42px 42px 38px;
-  margin-bottom: 18px;
-  border-radius: 18px;
-  text-align: center;
-  background: rgba(255,255,255,0.92);
-  border: 1px solid var(--gov-border);
-  box-shadow: var(--gov-shadow-soft);
-}
-.hero-box::before {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; left: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--gov-green-800), var(--gov-gold), var(--gov-green-800));
-}
-.hero-box::after {
-  content: "";
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  left: -100px;
-  bottom: -120px;
-  border: 1px solid rgba(182,138,53,0.16);
-  background: rgba(182,138,53,0.035);
-}
-.hero-badge {
-  display: inline-block;
-  padding: 7px 18px;
-  border-radius: 999px;
-  color: var(--gov-green-800);
-  background: rgba(23,102,79,0.08);
-  border: 1px solid rgba(23,102,79,0.13);
-  font-size: 11.5px;
-  font-weight: 900;
-  margin-bottom: 16px;
-}
-.hero-title {
-  color: var(--gov-green-950);
-  font-size: 38px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  line-height: 1.25;
-}
-.hero-gold {
-  color: #8D6724;
-  font-size: 15px;
-  font-weight: 800;
-  margin-top: 10px;
-}
-.hero-body {
-  color: var(--gov-muted);
-  font-size: 14px;
-  font-weight: 600;
-  max-width: 760px;
-  margin: 16px auto 0;
-  line-height: 2;
-}
-
-.feat-grid { margin-bottom: 18px; }
-.feat-card {
-  position: relative;
-  overflow: hidden;
-  padding: 24px 22px 22px;
-  border-radius: 16px;
-  background: #FFFFFF;
-  border: 1px solid rgba(18,66,54,0.12);
-  box-shadow: var(--gov-shadow-soft);
-  height: 100%;
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.feat-card:hover { transform: translateY(-3px); box-shadow: var(--gov-shadow); }
-.feat-card::before {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--gov-green-700), var(--gov-gold));
-}
-.feat-card::after {
-  content: "";
-  position: absolute;
-  inset: auto 18px 16px auto;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  border: 1px solid rgba(182,138,53,0.13);
-  opacity: .6;
-}
-.feat-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  color: var(--gov-green-900);
-  background: #F5F0E3;
-  border: 1px solid rgba(182,138,53,0.22);
-  font-size: 13px;
-  font-weight: 900;
-  margin-bottom: 14px;
-}
-.feat-title { color: var(--gov-green-950); font-size: 17px; font-weight: 900; }
-.feat-desc { color: var(--gov-muted); font-size: 12.5px; font-weight: 600; line-height: 1.85; margin-top: 8px; }
-
-/* Form */
-.form-card {
-  position: relative;
-  overflow: hidden;
-  padding: 34px 40px;
-  border-radius: 18px;
-  background: #FFFFFF;
-  border: 1px solid var(--gov-border);
-  box-shadow: var(--gov-shadow-soft);
-  margin-bottom: 18px;
-}
-.form-card::before {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; left: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--gov-green-800), var(--gov-gold), var(--gov-green-800));
-}
-.form-title {
-  text-align: center;
-  color: var(--gov-green-950);
-  font-size: 27px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-}
-.form-sub {
-  text-align: center;
-  color: #8D6724;
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 8px;
-}
-.form-rule {
-  width: 220px;
-  height: 1px;
-  margin: 14px auto 18px;
-  background: linear-gradient(90deg, transparent, var(--gov-gold), transparent);
-}
-.form-section-badge {
-  display: inline-block;
-  padding: 8px 20px;
-  border-radius: 999px;
-  color: var(--gov-green-800);
-  background: rgba(23,102,79,0.07);
-  border: 1px solid rgba(23,102,79,0.13);
-  font-size: 13px;
-  font-weight: 900;
-  margin-bottom: 18px;
-}
-
-.stTextInput label,
-.stSelectbox label {
-  color: var(--gov-green-950) !important;
+.stTextInput label, .stSelectbox label {
+  color: var(--text) !important;
   font-weight: 800 !important;
   font-size: 13px !important;
 }
 .stTextInput input {
-  min-height: 50px !important;
+  min-height: 48px !important;
   border-radius: 10px !important;
-  background: #FFFFFF !important;
-  border: 1px solid rgba(18,66,54,0.18) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: none !important;
   font-family: 'Cairo', sans-serif !important;
-  font-size: 14px !important;
-  color: var(--gov-green-950) !important;
+  color: var(--text) !important;
 }
 .stTextInput input:focus {
-  border-color: var(--gov-green-700) !important;
-  box-shadow: 0 0 0 3px rgba(23,102,79,0.12) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(0,108,78,.10) !important;
 }
 .stSelectbox > div > div {
-  min-height: 50px !important;
+  min-height: 48px !important;
   border-radius: 10px !important;
-  background: #FFFFFF !important;
-  border: 1px solid rgba(18,66,54,0.18) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: none !important;
 }
 
-/* Dashboard main card */
-.crowding-card {
-  position: relative;
-  overflow: hidden;
-  min-height: 342px;
-  padding: 34px 38px;
+/* Government / enterprise shell */
+.gov-shell {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
   border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.05), transparent 34%),
-    linear-gradient(145deg, #06251F 0%, #124236 54%, #0B332B 100%);
-  border: 1px solid rgba(216,192,138,0.34);
-  box-shadow: var(--gov-shadow);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
-.crowding-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: .09;
-  background-image:
-    linear-gradient(45deg, rgba(255,255,255,.55) 1px, transparent 1px),
-    linear-gradient(-45deg, rgba(216,192,138,.45) 1px, transparent 1px);
-  background-size: 34px 34px;
-}
-.crowding-card::after {
-  content: "";
-  position: absolute;
-  right: 28px;
-  left: 28px;
-  bottom: 0;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--gov-gold), transparent);
-}
-.cc-inner { position: relative; z-index: 2; width: 100%; }
-.cc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 20px;
-  border-radius: 999px;
-  color: #E6D3A5;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.14);
-  font-size: 12px;
-  font-weight: 900;
-  margin-bottom: 18px;
-}
-.cc-badge-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--gov-gold);
-  box-shadow: 0 0 8px 2px rgba(182,138,53,0.35);
-  display: inline-block;
-}
-.cc-level {
-  font-size: 76px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -1px;
-  text-shadow: 0 10px 24px rgba(0,0,0,0.16);
-  margin-bottom: 10px;
-}
-.cc-label {
-  color: #E6D3A5;
-  font-size: 16px;
-  font-weight: 800;
-  margin-bottom: 18px;
-}
-.cc-rule {
-  width: 180px;
-  height: 1px;
-  margin: 0 auto 20px;
-  background: linear-gradient(90deg, transparent, rgba(216,192,138,0.75), transparent);
-}
-.cc-stats {
+.gov-topbar {
+  min-height: 76px;
+  padding: 18px 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--border-2);
+  background: linear-gradient(90deg, #FFFFFF 0%, #F8FBF9 100%);
 }
-.cc-stat {
-  padding: 10px 18px;
+.gov-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.gov-logo {
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.13);
-  min-width: 130px;
-  text-align: center;
-}
-.cc-stat-label { color: rgba(255,255,255,0.62); font-size: 10.5px; font-weight: 700; margin-bottom: 4px; }
-.cc-stat-value { color: #FFFFFF; font-size: 18px; font-weight: 900; line-height: 1.2; }
-
-.metric-card {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  gap: 15px;
-  padding: 16px 18px;
-  border-radius: 15px;
-  background: #FFFFFF;
-  border: 1px solid rgba(18,66,54,0.12);
-  box-shadow: var(--gov-shadow-soft);
-  min-height: 104px;
-  height: 104px;
-}
-.metric-card::before {
-  content: "";
-  position: absolute;
-  right: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--gov-green-700), var(--gov-gold));
-}
-.metric-icon {
-  width: 54px;
-  height: 54px;
-  min-width: 54px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 21px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 18px;
   font-weight: 900;
-  color: var(--gov-green-900);
-  background: #F5F0E3;
-  border: 1px solid rgba(182,138,53,0.20);
+  box-shadow: 0 8px 18px rgba(0,108,78,0.18);
 }
-.metric-body { flex: 1; text-align: right; }
-.metric-label { color: var(--gov-muted); font-size: 12px; font-weight: 800; margin-bottom: 5px; }
-.metric-value { color: var(--gov-green-950); font-size: 25px; font-weight: 900; line-height: 1.18; letter-spacing: -0.4px; }
-.metric-sub { color: var(--gov-muted); font-size: 11px; font-weight: 700; margin-top: 4px; }
+.gov-title {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  line-height: 1.35;
+}
+.gov-subtitle {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+.gov-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--primary-soft);
+  border: 1px solid #D6EAE3;
+  border-radius: 999px;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+.gov-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
 
-.reco-card {
+.nav-wrap {
+  padding: 12px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-2);
+}
+.nav-wrap .stButton button {
+  background: #FAFCFB !important;
+  border-color: var(--border-2) !important;
+}
+.nav-wrap .stButton button:hover {
+  background: var(--primary-dark) !important;
+  color: white !important;
+}
+
+.page-section {
+  padding: 20px;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+.panel-soft {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFCFB 100%);
+}
+.section-title {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.section-subtitle {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.8;
+}
+.thin-line {
+  height: 1px;
+  background: var(--border-2);
+  margin: 16px 0;
+}
+
+/* Home */
+.hero-clean {
   position: relative;
   overflow: hidden;
-  padding: 22px 28px 24px;
-  border-radius: 16px;
-  background: #FFFFFF;
-  border: 1px solid var(--gov-border);
-  box-shadow: var(--gov-shadow-soft);
-  text-align: center;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5FBF8 100%);
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 34px 32px;
+  margin-bottom: 16px;
 }
-.reco-card::before {
+.hero-clean:before {
   content: "";
   position: absolute;
-  top: 0; right: 0; left: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--gov-green-800), var(--gov-gold), var(--gov-green-800));
+  top: 0; right: 0; bottom: 0;
+  width: 7px;
+  background: var(--primary);
 }
-.reco-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 18px;
+.hero-kicker {
+  display: inline-block;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid #D6EAE3;
   border-radius: 999px;
-  color: var(--gov-green-800);
-  background: rgba(23,102,79,0.08);
-  border: 1px solid rgba(23,102,79,0.15);
+  padding: 7px 14px;
   font-size: 12px;
   font-weight: 900;
   margin-bottom: 14px;
 }
-.reco-eyebrow { color: #7A6A4C; font-size: 11px; font-weight: 800; margin-bottom: 6px; }
-.reco-decision { font-size: 25px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.3px; }
-.reco-rule {
-  width: 150px;
-  height: 1px;
-  margin: 8px auto 12px;
-  background: linear-gradient(90deg, transparent, var(--gov-gold), transparent);
-  position: relative;
-}
-.reco-rule::after {
-  content: "◆";
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--gov-gold);
-  font-size: 10px;
-}
-.reco-text { color: #2E3F3A; font-size: 13.5px; font-weight: 600; line-height: 1.9; max-width: 980px; margin: auto; }
-
-.suggest-card {
-  position: relative;
-  overflow: hidden;
-  padding: 25px 22px;
-  border-radius: 16px;
-  text-align: center;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.05), transparent 34%),
-    linear-gradient(160deg, #06251F 0%, #124236 58%, #0B332B 100%);
-  border: 1px solid rgba(216,192,138,0.32);
-  box-shadow: var(--gov-shadow);
-  min-height: 176px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.suggest-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: .09;
-  background-image:
-    linear-gradient(45deg, rgba(255,255,255,.50) 1px, transparent 1px),
-    linear-gradient(-45deg, rgba(216,192,138,.38) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-.suggest-inner { position: relative; z-index: 2; }
-.suggest-title { color: #FFFFFF; font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
-.suggest-sub { color: #E6D3A5; font-size: 12px; font-weight: 700; line-height: 1.9; margin-top: 10px; }
-
-.best-day-card {
-  margin-top: 12px;
-  padding: 18px 16px;
-  border-radius: 15px;
-  text-align: center;
-  background: #FFFFFF;
-  border: 1px solid rgba(23,102,79,0.18);
-  box-shadow: var(--gov-shadow-soft);
-}
-.bdc-badge {
-  display: inline-block;
-  padding: 5px 13px;
-  border-radius: 999px;
-  color: var(--gov-green-800);
-  background: rgba(23,102,79,0.08);
-  font-size: 10px;
+.hero-title {
+  color: var(--text);
+  font-size: 34px;
   font-weight: 900;
+  letter-spacing: -0.8px;
+  line-height: 1.35;
+}
+.hero-gold {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 900;
+  margin-top: 6px;
+}
+.hero-body {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+  max-width: 760px;
+  line-height: 2;
+  margin-top: 12px;
+}
+.feat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  min-height: 146px;
+  height: 100%;
+}
+.feat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+.feat-title { color: var(--text); font-size: 16px; font-weight: 900; }
+.feat-desc { color: var(--muted); font-size: 12.5px; font-weight: 650; line-height: 1.9; margin-top: 8px; }
+
+/* Form */
+.form-shell {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-2);
+  margin-bottom: 18px;
+}
+.form-title { color: var(--text); font-size: 22px; font-weight: 900; }
+.form-sub { color: var(--muted); font-size: 12.5px; font-weight: 700; margin-top: 4px; }
+.form-badge {
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid #D6EAE3;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* Dashboard */
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+  height: 100%;
+}
+.summary-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
   margin-bottom: 8px;
 }
-.bdc-day { color: var(--gov-green-950); font-size: 24px; font-weight: 900; line-height: 1.4; }
-.bdc-meta { color: var(--gov-muted); font-size: 12px; font-weight: 700; line-height: 1.9; margin-top: 6px; }
-.bdc-meta strong { color: var(--gov-green-950); font-weight: 900; }
-.bdc-note { color: var(--gov-green-700); font-size: 11px; font-weight: 700; margin-top: 8px; line-height: 1.7; }
+.summary-level {
+  font-size: 46px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+}
+.summary-desc {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.8;
+  margin-top: 10px;
+}
+.summary-divider {
+  height: 1px;
+  background: var(--border-2);
+  margin: 18px 0;
+}
+.summary-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.summary-mini {
+  background: #FAFCFB;
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  padding: 12px;
+}
+.summary-mini-label { color: var(--muted-2); font-size: 11px; font-weight: 800; margin-bottom: 4px; }
+.summary-mini-value { color: var(--text); font-size: 16px; font-weight: 900; }
+
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  min-height: 112px;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.metric-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  flex: 0 0 auto;
+}
+.metric-body { flex: 1; }
+.metric-label { color: var(--muted); font-size: 11.5px; font-weight: 850; margin-bottom: 6px; }
+.metric-value { color: var(--text); font-size: 24px; font-weight: 900; line-height: 1.2; letter-spacing: -0.3px; }
+.metric-sub { color: var(--muted-2); font-size: 11px; font-weight: 700; margin-top: 5px; }
+
+.reco-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-top: 14px;
+}
+.reco-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.reco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border: 1px solid #D6EAE3;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 900;
+}
+.cc-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: inline-block;
+}
+.reco-decision { font-size: 24px; font-weight: 900; letter-spacing: -0.3px; }
+.reco-text { color: var(--muted); font-size: 13.5px; font-weight: 650; line-height: 1.9; }
+
+.suggest-card {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  padding: 22px;
+  min-height: 164px;
+  color: white;
+}
+.suggest-title { color: #fff; font-size: 20px; font-weight: 900; }
+.suggest-sub { color: rgba(255,255,255,0.82); font-size: 12.5px; font-weight: 650; line-height: 1.9; margin-top: 8px; }
+.best-day-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-top: 10px;
+}
+.bdc-badge { display: inline-block; color: var(--primary-dark); background: var(--primary-soft); border-radius: 999px; padding: 5px 10px; font-size: 10px; font-weight: 900; margin-bottom: 8px; }
+.bdc-day { color: var(--text); font-size: 22px; font-weight: 900; }
+.bdc-meta { color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.9; margin-top: 6px; }
+.bdc-meta strong { color: var(--text); }
+.bdc-note { color: var(--primary); font-size: 11px; font-weight: 800; margin-top: 8px; line-height: 1.7; }
 
 .chart-card {
-  padding: 18px 20px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
   border-radius: 16px;
-  background: #FFFFFF;
-  border: 1px solid rgba(18,66,54,0.12);
-  box-shadow: var(--gov-shadow-soft);
+  box-shadow: var(--shadow);
+  padding: 18px 18px 4px;
 }
-.chart-title { color: var(--gov-green-950); font-size: 15px; font-weight: 900; text-align: right; }
-.chart-rule { width: 80px; height: 1px; margin: 7px 0 4px auto; background: linear-gradient(90deg, var(--gov-gold), transparent); }
-
+.chart-title { color: var(--text); font-size: 16px; font-weight: 900; }
+.chart-subtitle { color: var(--muted); font-size: 11.5px; font-weight: 700; margin-top: 4px; }
 .info-pill {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  background: #FFFFFF;
-  border: 1px solid var(--gov-border);
-  color: #4E3F20;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text);
   font-size: 12px;
   font-weight: 800;
-  box-shadow: var(--gov-shadow-soft);
+  box-shadow: var(--shadow);
 }
 .pill-tag {
-  padding: 4px 11px;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
   border-radius: 999px;
-  background: rgba(23,102,79,0.09);
-  color: var(--gov-green-800);
-  font-size: 10.5px;
+  padding: 4px 9px;
+  font-size: 10px;
   font-weight: 900;
 }
 
 @media (max-width: 900px) {
-  .block-container { padding-left: .8rem !important; padding-right: .8rem !important; }
-  .header-title { font-size: 22px; }
-  .hero-title { font-size: 27px; }
-  .cc-level { font-size: 52px; }
-  .crowding-card { min-height: 250px; }
-  .metric-card { height: auto; min-height: 90px; }
-  .metric-value { font-size: 22px; }
-  .suggest-card { min-height: 140px; }
+  .gov-topbar { align-items: flex-start; flex-direction: column; }
+  .hero-title { font-size: 26px; }
+  .summary-level { font-size: 36px; }
+  .summary-mini-grid { grid-template-columns: 1fr; }
+  .metric-value { font-size: 20px; }
 }
 </style>
 """)
@@ -1112,17 +982,23 @@ div[data-testid="stHorizontalBlock"] {
 
 def show_header():
     H("""
-    <div class="site-header">
-      <div class="header-inner">
-        <div class="header-title">المنصة الذكية لتوقع الازدحام</div>
-        <div class="header-sub">اختيار الوقت الأنسب لأداء العمرة</div>
-        <div class="header-rule"></div>
+    <div class="gov-shell">
+      <div class="gov-topbar">
+        <div class="gov-brand">
+          <div class="gov-logo">ح</div>
+          <div>
+            <div class="gov-title">المنصة الذكية لتوقع الازدحام</div>
+            <div class="gov-subtitle">اختيار الوقت الأنسب لأداء العمرة</div>
+          </div>
+        </div>
+        <div class="gov-status"><span class="gov-dot"></span> نظام تنبؤ تفاعلي</div>
       </div>
     </div>
     """)
 
 
 def render_nav():
+    H('<div class="nav-wrap">')
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("الرئيسية", use_container_width=True):
@@ -1136,18 +1012,27 @@ def render_nav():
         if st.button("لوحة النتائج", use_container_width=True):
             st.session_state.page = "dashboard"
             st.rerun()
-    H("<div style='height:14px;'></div>")
+    H('</div><div style="height:14px;"></div>')
 
 
 def crowding_hero_card(level, prediction_text, weekday, hijri_date):
     level = normalize_level(level)
-    color = LEVEL_COLORS.get(level, "#1A9B6C")
+    color = LEVEL_COLORS.get(level, "#006C4E")
     H(f"""
-    <div class="crowding-card">
-      <div class="cc-inner">
-        <div class="cc-level" style="color:{color};">{esc(level)}</div>
-        <div class="cc-label">مستوى الازدحام المتوقع</div>
-        
+    <div class="summary-card panel-soft">
+      <div class="summary-label">مستوى الازدحام المتوقع</div>
+      <div class="summary-level" style="color:{color};">{esc(level)}</div>
+      <div class="summary-desc">يعرض هذا المؤشر مستوى الازدحام المتوقع لليوم المحدد بناءً على بيانات النموذج.</div>
+      <div class="summary-divider"></div>
+      <div class="summary-mini-grid">
+        <div class="summary-mini">
+          <div class="summary-mini-label">العدد المتوقع</div>
+          <div class="summary-mini-value">{esc(prediction_text)}</div>
+        </div>
+        <div class="summary-mini">
+          <div class="summary-mini-label">اليوم المختار</div>
+          <div class="summary-mini-value">{esc(weekday)}</div>
+        </div>
       </div>
     </div>
     """)
@@ -1156,30 +1041,28 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
 def metric_card(label, value, sub, icon):
     H(f"""
     <div class="metric-card">
-      <div class="metric-icon">{esc(icon)}</div>
       <div class="metric-body">
         <div class="metric-label">{esc(label)}</div>
         <div class="metric-value">{esc(value)}</div>
         <div class="metric-sub">{esc(sub)}</div>
       </div>
+      <div class="metric-icon">{esc(icon)}</div>
     </div>
     """)
 
 
 def reco_card(decision, reason, level):
     level = normalize_level(level)
-    color = LEVEL_COLORS.get(level, "#052A24")
+    color = LEVEL_COLORS.get(level, "#006C4E")
     H(f"""
     <div class="reco-card">
-        <div class="reco-badge">
-            <span class="cc-badge-dot"></span>
-        التوصية النهائية
+      <div class="reco-top">
+        <div class="reco-badge"><span class="cc-badge-dot"></span> التوصية النهائية</div>
+        <div class="reco-decision" style="color:{color};">{esc(decision)}</div>
+      </div>
+      <div class="reco-text">{esc(reason)}</div>
     </div>
-    <div class="reco-decision" style="color:{color};">{esc(decision)}</div>
-    <div class="reco-rule"></div>
-    <div class="reco-text">{esc(reason)}</div>
-</div>
-""")
+    """)
 
 
 def best_day_card(row):
@@ -1232,7 +1115,8 @@ def home_page():
     render_nav()
 
     H("""
-    <div class="hero-box">
+    <div class="hero-clean">
+      <div class="hero-kicker">نظام تنبؤ تفاعلي</div>
       <div class="hero-title">مرحباً بك في نظام التنبؤ بازدحام المعتمرين</div>
       <div class="hero-gold">Umrah Visitors Smart Forecasting System</div>
       <div class="hero-body">
@@ -1258,7 +1142,7 @@ def home_page():
             </div>
             """)
 
-    H("<div style='height:22px;'></div>")
+    H("<div style='height:20px;'></div>")
     _, mid, _ = st.columns([1, 1.05, 1])
     with mid:
         if st.button("بدء التنبؤ", use_container_width=True):
@@ -1273,11 +1157,14 @@ def input_page():
     df_dates = load_data()
 
     H("""
-    <div class="form-card">
-      <div class="form-title">تحديد موعد العمرة</div>
-      <div class="form-sub">اختر تاريخ الزيارة لمعرفة مستوى الازدحام المتوقع</div>
-      <div class="form-rule"></div>
-
+    <div class="form-shell">
+      <div class="form-header">
+        <div>
+          <div class="form-title">تحديد موعد العمرة</div>
+          <div class="form-sub">اختر تاريخ الزيارة لمعرفة مستوى الازدحام المتوقع</div>
+        </div>
+        <div class="form-badge">بيانات الزيارة</div>
+      </div>
     </div>
     """)
 
@@ -1302,7 +1189,7 @@ def input_page():
     if blocked:
         st.error("لا يمكن عرض النتائج لهذا الاختيار؛ لأن الجنسية غير سعودي خلال الفترة من 1 إلى 15 ذو القعدة.")
 
-    H("<div style='height:20px;'></div>")
+    H("<div style='height:18px;'></div>")
     _, mid, _ = st.columns([1, 1.1, 1])
     with mid:
         submitted = st.button("عرض التوقع", use_container_width=True)
@@ -1371,27 +1258,21 @@ def dashboard_page():
     best_day    = get_best_day(df7, day, month)
     pred_text   = format_number(prediction)
 
-    # ── Top row: crowding card + 3 metric cards ──────────────────────────
-    left_col, right_col = st.columns([1.6, 1], gap="large")
-
-    with left_col:
+    top_col, metrics_col = st.columns([1.25, 1.75], gap="large")
+    with top_col:
         crowding_hero_card(level, pred_text, weekday, hijri_date)
+    with metrics_col:
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            metric_card("اليوم المختار",  weekday,   hijri_date, "📅")
+        with m2:
+            metric_card("العدد المتوقع",  pred_text, "معتمر",    "👥")
+        with m3:
+            metric_card("درجة الحرارة",   temp_text, "متوسط اليوم", "🌡")
+        reco_card(decision, reason, level)
 
-    with right_col:
-        metric_card("اليوم المختار",  weekday,   hijri_date, "📅")
-        H("<div style='height:10px;'></div>")
-        metric_card("العدد المتوقع",  pred_text, "معتمر",    "👥")
-        H("<div style='height:10px;'></div>")
-        metric_card("درجة الحرارة",   temp_text, "متوسط اليوم", "🌡")
-
-    H("<div style='height:12px;'></div>")
-
-    # ── Recommendation ───────────────────────────────────────────────────
-    reco_card(decision, reason, level)
-
-    # ── Seasonal info pills ──────────────────────────────────────────────
     if show_hajj or show_tawaf:
-        H("<div style='height:10px;'></div>")
+        H("<div style='height:12px;'></div>")
         _, s1, _ = st.columns([1, 1.4, 1])
         with s1:
             if show_hajj:
@@ -1400,27 +1281,21 @@ def dashboard_page():
                 info_pill(f"عدد طواف الإفاضة المتوقع: {tawaf_count}", "طواف")
 
     H("<div style='height:14px;'></div>")
-
-    # ── Suggest + Chart ──────────────────────────────────────────────────
-    sug_col, chart_col = st.columns([1, 2.3], gap="large")
+    sug_col, chart_col = st.columns([0.85, 2.15], gap="large")
 
     with sug_col:
         H("""
         <div class="suggest-card">
-          <div class="suggest-inner">
-            <div class="suggest-title">اقتراح يوم بديل</div>
-            <div class="suggest-sub">
-              يقارن النظام الأيام السبعة القريبة ويقترح
-              الأقل ازدحامًا عند الحاجة.
-            </div>
+          <div class="suggest-title">اقتراح يوم بديل</div>
+          <div class="suggest-sub">
+            يقارن النظام الأيام السبعة القريبة ويقترح
+            الأقل ازدحامًا عند الحاجة.
           </div>
         </div>
         """)
-
         H("<div style='height:10px;'></div>")
         if st.button("اقتراح يوم أنسب", use_container_width=True):
             st.session_state.show_best_day = True
-
         if st.session_state.show_best_day:
             best_day_card(best_day)
 
@@ -1428,13 +1303,13 @@ def dashboard_page():
         H("""
         <div class="chart-card">
           <div class="chart-title">الاتجاه المتوقع خلال الأيام السبعة القريبة</div>
-          <div class="chart-rule"></div>
-        </div>
+          <div class="chart-subtitle">مقارنة بصرية لمستوى الازدحام المتوقع حول التاريخ المختار</div>
         """)
         fig = build_chart(df7, month, day)
         st.plotly_chart(fig, use_container_width=True)
+        H("</div>")
 
-    H("<div style='height:10px;'></div>")
+    H("<div style='height:14px;'></div>")
     _, mid, _ = st.columns([1, 1.2, 1])
     with mid:
         if st.button("إدخال تاريخ جديد", use_container_width=True):
