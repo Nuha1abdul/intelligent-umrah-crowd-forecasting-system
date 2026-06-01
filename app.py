@@ -1172,61 +1172,6 @@ div[data-testid="stHorizontalBlock"] {
   .metric-value { font-size: 22px; }
   .suggest-card { min-height: 140px; }
 }
-/* ─── Updated balanced crowding card: data-first layout ─── */
-.crowding-card {
-  min-height: 300px;
-  padding: 30px 34px;
-  justify-content: center;
-}
-.cc-badge {
-  margin-bottom: 14px;
-}
-.cc-level {
-  font-size: 58px;
-  line-height: 1.05;
-  margin-bottom: 14px;
-}
-.cc-rule {
-  width: 180px;
-  margin: 0 auto 20px;
-}
-.cc-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  max-width: 620px;
-  margin: 0 auto;
-}
-.cc-summary-item {
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.16);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-}
-.cc-summary-label {
-  color: rgba(255,248,236,0.66);
-  font-size: 11px;
-  font-weight: 800;
-  margin-bottom: 5px;
-}
-.cc-summary-value {
-  color: #FFF8EC;
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-.cc-summary-sub {
-  color: #D8B870;
-  font-size: 11px;
-  font-weight: 800;
-  margin-top: 4px;
-}
-@media (max-width: 900px) {
-  .cc-level { font-size: 44px; }
-  .cc-summary-grid { grid-template-columns: 1fr; }
-}
-
 </style>
 """)
 
@@ -1268,21 +1213,9 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
     H(f"""
     <div class="crowding-card">
       <div class="cc-inner">
-        <div class="cc-badge"><span class="cc-badge-dot"></span> مستوى الازدحام المتوقع</div>
         <div class="cc-level" style="color:{color};">{esc(level)}</div>
-        <div class="cc-rule"></div>
-        <div class="cc-summary-grid">
-          <div class="cc-summary-item">
-            <div class="cc-summary-label">العدد المتوقع</div>
-            <div class="cc-summary-value">{esc(prediction_text)}</div>
-            <div class="cc-summary-sub">معتمر</div>
-          </div>
-          <div class="cc-summary-item">
-            <div class="cc-summary-label">اليوم المختار</div>
-            <div class="cc-summary-value">{esc(weekday)}</div>
-            <div class="cc-summary-sub">{esc(hijri_date)}</div>
-          </div>
-        </div>
+        <div class="cc-label">مستوى الازدحام المتوقع</div>
+        
       </div>
     </div>
     """)
@@ -1506,13 +1439,17 @@ def dashboard_page():
     best_day    = get_best_day(df7, day, month)
     pred_text   = format_number(prediction)
 
-    # ── Top row: crowding card + supporting metric card ──────────────────
-    left_col, right_col = st.columns([2.05, 0.95], gap="large")
+    # ── Top row: crowding card + 3 metric cards ──────────────────────────
+    left_col, right_col = st.columns([1.6, 1], gap="large")
 
     with left_col:
         crowding_hero_card(level, pred_text, weekday, hijri_date)
 
     with right_col:
+        metric_card("اليوم المختار",  weekday,   hijri_date, "📅")
+        H("<div style='height:10px;'></div>")
+        metric_card("العدد المتوقع",  pred_text, "معتمر",    "👥")
+        H("<div style='height:10px;'></div>")
         metric_card("درجة الحرارة",   temp_text, "متوسط اليوم", "🌡")
 
     H("<div style='height:12px;'></div>")
