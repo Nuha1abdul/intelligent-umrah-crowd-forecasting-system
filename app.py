@@ -1215,21 +1215,7 @@ def crowding_hero_card(level, prediction_text, weekday, hijri_date):
       <div class="cc-inner">
         <div class="cc-level" style="color:{color};">{esc(level)}</div>
         <div class="cc-label">مستوى الازدحام المتوقع</div>
-        <div class="cc-rule"></div>
-        <div class="cc-stats">
-          <div class="cc-stat">
-            <div class="cc-stat-label">العدد المتوقع</div>
-            <div class="cc-stat-value">{esc(prediction_text)}</div>
-          </div>
-          <div class="cc-stat">
-            <div class="cc-stat-label">اليوم المختار</div>
-            <div class="cc-stat-value">{esc(weekday)}</div>
-          </div>
-          <div class="cc-stat">
-            <div class="cc-stat-label">التاريخ الهجري</div>
-            <div class="cc-stat-value">{esc(hijri_date)}</div>
-          </div>
-        </div>
+        
       </div>
     </div>
     """)
@@ -1460,11 +1446,11 @@ def dashboard_page():
         crowding_hero_card(level, pred_text, weekday, hijri_date)
 
     with right_col:
+        metric_card("اليوم المختار",  weekday,   hijri_date, "📅")
+        H("<div style='height:10px;'></div>")
+        metric_card("العدد المتوقع",  pred_text, "معتمر",    "👥")
+        H("<div style='height:10px;'></div>")
         metric_card("درجة الحرارة",   temp_text, "متوسط اليوم", "🌡")
-        H("<div style='height:10px;'></div>")
-        metric_card("الشهر الهجري",  month, "موعد الزيارة", "◷")
-        H("<div style='height:10px;'></div>")
-        metric_card("الجنسية", st.session_state.selected_nationality, "بيانات المعتمر", "◉")
 
     H("<div style='height:12px;'></div>")
 
