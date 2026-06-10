@@ -8,8 +8,8 @@ A Data Science graduation project that predicts Umrah visitor crowd levels and r
 </p>
 
 <p align="center">
-A Data Science graduation project that predicts Umrah visitor crowd levels and recommends suitable visiting days at Al-Masjid Al-Haram.
-</p>
+
+
 ---
 
 ## Live Dashboard
