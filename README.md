@@ -2,6 +2,14 @@
 
 A Data Science graduation project that predicts Umrah visitor crowd levels and recommends suitable visiting days at Al-Masjid Al-Haram. The system integrates a Growth-Rate XGBoost forecasting model with an interactive Arabic-language Streamlit dashboard deployed for public access.
 
+
+<p align="center">
+  <img src="images/dashboard.png" width="900">
+</p>
+
+<p align="center">
+A Data Science graduation project that predicts Umrah visitor crowd levels and recommends suitable visiting days at Al-Masjid Al-Haram.
+</p>
 ---
 
 ## Live Dashboard
